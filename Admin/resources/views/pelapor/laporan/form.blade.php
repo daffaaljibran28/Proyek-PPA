@@ -3,14 +3,14 @@
 @section('title', $laporan ? 'Edit Pengaduan' : 'Buat Pengaduan')
 
 @section('content')
-    <div class="max-w-3xl">
+    <div class="w-full">
         <a href="{{ $laporan ? route('pelapor.laporan.show', $laporan->id_laporan) : route('pelapor.laporan.index') }}" class="inline-flex items-center gap-2 text-sm font-semibold text-rose-700 transition hover:gap-3 hover:text-rose-800">
             <span class="grid h-9 w-9 place-items-center rounded-full border border-rose-100 bg-white shadow-sm">
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m7 7-7-7 7-7"/></svg>
             </span>
             Kembali
         </a>
-        <h1 class="mt-3 text-2xl font-bold">{{ $laporan ? 'Edit Pengaduan' : 'Buat Pengaduan' }}</h1>
+        <h1 class="mt-3 text-2xl font-bold text-rose-600">{{ $laporan ? 'Edit Pengaduan' : 'Buat Pengaduan' }}</h1>
         <p class="mt-2 text-sm leading-6 text-slate-600">Ceritakan kejadian secara jelas. Data pengaduan hanya dapat dilihat oleh akun Anda dan petugas berwenang.</p>
 
         @if ($errors->any())

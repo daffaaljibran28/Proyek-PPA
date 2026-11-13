@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div><p class="text-sm text-slate-500">Pengaduan</p><h1 class="mt-1 text-2xl font-bold">Riwayat Pengaduan</h1><p class="mt-2 text-sm text-slate-600">Daftar pengaduan yang dikirim dari akun Anda.</p></div>
+        <div><h1 class="text-2xl font-bold text-rose-600">Riwayat Pengaduan</h1><p class="mt-2 text-sm text-slate-600">Daftar pengaduan yang dikirim dari akun Anda.</p></div>
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
             <form method="GET" action="{{ route('pelapor.laporan.index') }}" class="flex gap-2">
                 <label for="status" class="sr-only">Filter status</label>

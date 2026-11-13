@@ -6,8 +6,7 @@
     <div class="space-y-6 max-w-5xl mx-auto">
         <!-- Header Halaman Pelapor -->
         <div>
-            <p class="text-xs font-medium text-slate-400">Edukasi</p>
-            <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Informasi & Edukasi</h2>
+            <h2 class="text-2xl font-bold text-rose-600 tracking-tight">Informasi & Edukasi</h2>
             <p class="text-xs text-slate-500 font-medium mt-0.5">Pusat informasi, artikel, dan edukasi seputar perlindungan dan pencegahan kekerasan.</p>
         </div>
 
@@ -29,8 +28,9 @@
                              class="h-full w-full object-cover object-center transition duration-300 group-hover:scale-105">
                     @else
                         <div class="flex h-full w-full items-center justify-center">
-                            <svg class="h-12 w-12 text-rose-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/>
+                            <svg class="h-12 w-12 text-rose-600" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path fill="currentColor" d="M2.5 5.4c3.6-.7 6.8-.2 9.5 1.6v13c-2.7-1.8-5.9-2.3-9.5-1.6v-13Zm19 0c-3.6-.7-6.8-.2-9.5 1.6v13c2.7-1.8 5.9-2.3 9.5-1.6v-13Z"/>
+                                <path d="M12 7v12.7M5.2 8.5c1.7-.2 3.2 0 4.7.7m-4.7 2c1.7-.2 3.2 0 4.7.7m4.2-3.4c1.5-.7 3-.9 4.7-.7m-4.7 2.7c1.5-.7 3-.9 4.7-.7" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
                             </svg>
                         </div>
                     @endif
