@@ -48,8 +48,8 @@
         @endif
     </form>
 
-    <!-- 5 Kartu Statistik (Total, Menunggu, Diproses, Selesai, Ditolak) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+    <!-- 6 Kartu Statistik -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4 mb-8">
         <!-- Total Laporan -->
         <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs hover:border-gray-200 transition">
             <div class="flex items-center justify-between mb-3">
@@ -67,7 +67,7 @@
         <!-- Menunggu Verifikasi -->
         <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs hover:border-gray-200 transition">
             <div class="flex items-center justify-between mb-3">
-                <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Menunggu</span>
+                <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Menunggu Verifikasi</span>
                 <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -78,18 +78,32 @@
             <p class="text-[11px] text-amber-600 font-medium mt-1">Memerlukan peninjauan</p>
         </div>
 
-        <!-- Sedang Diproses -->
+        <!-- Terverifikasi -->
         <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs hover:border-gray-200 transition">
             <div class="flex items-center justify-between mb-3">
-                <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Diproses</span>
+                <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Terverifikasi</span>
                 <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                     </svg>
                 </div>
             </div>
-            <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight">{{ $sedangDiproses ?? 0 }}</h2>
-            <p class="text-[11px] text-blue-600 font-medium mt-1">Tindak lanjut lapangan</p>
+            <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight">{{ $terverifikasi ?? 0 }}</h2>
+            <p class="text-[11px] text-blue-600 font-medium mt-1">Status database: Sedang Diproses</p>
+        </div>
+
+        <!-- Diproses -->
+        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs hover:border-gray-200 transition">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Diproses</span>
+                <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight">{{ $diproses ?? 0 }}</h2>
+            <p class="text-[11px] text-indigo-600 font-medium mt-1">Sedang ditindaklanjuti</p>
         </div>
 
         <!-- Selesai -->
@@ -164,10 +178,15 @@
                                     <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                                     Menunggu Verifikasi
                                 </span>
-                            @elseif($item->status_penanganan == 'Sedang Diproses' || $item->status_penanganan == 'Diproses')
+                            @elseif($item->status_penanganan == 'Sedang Diproses')
                                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
                                     <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                                    Sedang Diproses
+                                    Terverifikasi
+                                </span>
+                            @elseif($item->status_penanganan == 'Diproses')
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/60">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                                    Diproses
                                 </span>
                             @elseif($item->status_penanganan == 'Selesai')
                                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">

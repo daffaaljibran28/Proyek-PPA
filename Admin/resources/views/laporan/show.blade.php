@@ -97,36 +97,76 @@
                 <h3 class="font-bold text-rose-600 mb-4">Tindak Lanjut Laporan</h3>
                 @if ($laporan->status_penanganan === 'Selesai')
                     <p class="rounded-xl bg-emerald-50 p-4 text-sm leading-6 text-emerald-800">Laporan sudah selesai. Data dan status dikunci dan hanya dapat dilihat.</p>
+                @elseif ($laporan->status_penanganan === 'Menunggu Verifikasi')
+                    <form action="{{ route('laporan.update-status', $laporan->id_laporan) }}" method="POST" class="space-y-4">
+                        @csrf
+                        @method('PUT')
+                        <div>
+                            <label for="status_penanganan" class="mb-1 block text-xs font-bold text-gray-700">Keputusan Admin</label>
+                            <select id="status_penanganan" name="status_penanganan" required class="w-full rounded-xl border-gray-200 p-3 text-xs focus:border-rose-500 focus:ring-rose-500">
+                                <option value="">Pilih keputusan</option>
+                                <option value="Sedang Diproses" @selected(old('status_penanganan') === 'Sedang Diproses')>Verifikasi dan tugaskan Petugas</option>
+                                <option value="Ditolak" @selected(old('status_penanganan') === 'Ditolak')>Tolak laporan</option>
+                            </select>
+                            @error('status_penanganan')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div>
+                            <label for="assigned_petugas_id" class="mb-1 block text-xs font-bold text-gray-700">Petugas aktif</label>
+                            <select id="assigned_petugas_id" name="assigned_petugas_id" class="w-full rounded-xl border-gray-200 p-3 text-xs focus:border-rose-500 focus:ring-rose-500">
+                                <option value="">Pilih Petugas (wajib untuk verifikasi)</option>
+                                @foreach ($petugasAktif as $petugas)
+                                    <option value="{{ $petugas->id }}" @selected((string) old('assigned_petugas_id', $laporan->assigned_petugas_id) === (string) $petugas->id)>
+                                        {{ $petugas->name }}{{ $petugas->no_id_card ? ' - '.$petugas->no_id_card : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('assigned_petugas_id')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
+                            <p class="mt-1 text-xs text-gray-500">Pilihan Petugas tidak diperlukan jika laporan ditolak.</p>
+                        </div>
+
+                        <div>
+                            <label for="catatan_admin" class="mb-1 block text-xs font-bold text-gray-700">Catatan internal (tidak terlihat pelapor)</label>
+                            <textarea id="catatan_admin" name="catatan_admin" rows="3" class="w-full rounded-xl border-gray-200 p-3 text-xs focus:border-rose-500 focus:ring-rose-500" placeholder="Catatan internal Admin...">{{ old('catatan_admin', $laporan->catatan_admin) }}</textarea>
+                            @error('catatan_admin')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div>
+                            <label for="pesan_pelapor" class="mb-1 block text-xs font-bold text-gray-700">Pesan untuk Pelapor</label>
+                            <textarea id="pesan_pelapor" name="pesan_pelapor" rows="3" maxlength="2000" class="w-full rounded-xl border-gray-200 p-3 text-xs focus:border-rose-500 focus:ring-rose-500" placeholder="Pesan yang dapat dibaca pelapor...">{{ old('pesan_pelapor') }}</textarea>
+                            @error('pesan_pelapor')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
+                        </div>
+
+                        <button type="submit" class="w-full rounded-xl bg-rose-500 py-2.5 text-xs font-bold text-white shadow-md shadow-rose-200 hover:bg-rose-600">Simpan Keputusan</button>
+                    </form>
+                @elseif ($laporan->status_penanganan === 'Sedang Diproses' && $laporan->assigned_petugas_id === null)
+                    <p class="mb-4 text-sm leading-6 text-amber-800">Laporan ini sudah diverifikasi, tetapi belum memiliki Petugas. Tetapkan Petugas tanpa mengubah status atau riwayat.</p>
+                    <form action="{{ route('laporan.assign-petugas', $laporan->id_laporan) }}" method="POST" class="space-y-4">
+                        @csrf
+                        @method('PATCH')
+                        <div>
+                            <label for="assigned_petugas_id" class="mb-1 block text-xs font-bold text-gray-700">Petugas aktif</label>
+                            <select id="assigned_petugas_id" name="assigned_petugas_id" required class="w-full rounded-xl border-gray-200 p-3 text-xs focus:border-rose-500 focus:ring-rose-500">
+                                <option value="">Pilih Petugas</option>
+                                @foreach ($petugasAktif as $petugas)
+                                    <option value="{{ $petugas->id }}" @selected((string) old('assigned_petugas_id') === (string) $petugas->id)>
+                                        {{ $petugas->name }}{{ $petugas->no_id_card ? ' - '.$petugas->no_id_card : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('assigned_petugas_id')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
+                        </div>
+                        <button type="submit" class="w-full rounded-xl bg-rose-500 py-2.5 text-xs font-bold text-white hover:bg-rose-600">Tetapkan Petugas</button>
+                    </form>
                 @else
-                <form action="{{ route('laporan.update-status', $laporan->id_laporan) }}" method="POST" class="space-y-4">
-                    @csrf
-                    @method('PUT')
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Ubah Status</label>
-                        <select name="status_penanganan" class="w-full border-gray-200 rounded-xl text-xs p-3 focus:ring-rose-500 focus:border-rose-500">
-                            <option value="Menunggu Verifikasi" {{ $laporan->status_penanganan == 'Menunggu Verifikasi' ? 'selected' : '' }}>Menunggu Verifikasi</option>
-                            <option value="Sedang Diproses" {{ $laporan->status_penanganan == 'Sedang Diproses' ? 'selected' : '' }}>Sedang Diproses / Diverifikasi</option>
-                            @if ($laporan->status_penanganan === 'Diproses')<option value="Diproses" selected>Diproses (status lama)</option>@endif
-                            <option value="Selesai">Selesai</option>
-                            <option value="Ditolak" {{ $laporan->status_penanganan == 'Ditolak' ? 'selected' : '' }}>Ditolak</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Catatan internal (tidak terlihat pelapor)</label>
-                        <textarea name="catatan_admin" rows="3" class="w-full border-gray-200 rounded-xl text-xs p-3 focus:ring-rose-500 focus:border-rose-500" placeholder="Catatan internal petugas...">{{ $laporan->catatan_admin }}</textarea>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Pesan untuk Pelapor</label>
-                        <textarea name="pesan_pelapor" rows="3" maxlength="2000" class="w-full border-gray-200 rounded-xl text-xs p-3 focus:ring-rose-500 focus:border-rose-500" placeholder="Pesan yang dapat dibaca pelapor...">{{ old('pesan_pelapor') }}</textarea>
-                    </div>
-
-                    <div class="flex gap-3 pt-2">
-                        <button type="reset" class="w-1/2 py-2.5 border border-rose-500 text-rose-500 rounded-xl text-xs font-bold hover:bg-rose-50">Batal</button>
-                        <button type="submit" class="w-1/2 py-2.5 bg-rose-500 text-white rounded-xl text-xs font-bold hover:bg-rose-600 shadow-md shadow-rose-200">Simpan</button>
-                    </div>
-                </form>
+                    <p class="text-sm leading-6 text-gray-600">
+                        Status: <strong>{{ $laporan->status_penanganan }}</strong>
+                    </p>
+                    <p class="mt-2 text-sm leading-6 text-gray-600">
+                        Petugas:
+                        <strong>{{ $laporan->petugas?->name ?? '-' }}</strong>
+                    </p>
+                    <p class="mt-3 text-xs text-gray-500">Perubahan status menjadi Diproses atau Selesai dilakukan oleh Petugas.</p>
                 @endif
             </div>
         </div>

@@ -384,6 +384,14 @@ class PelaporAuthTest extends TestCase
             'role' => 'admin',
         ]);
         $user = $this->createPelapor();
+        $petugas = User::create([
+            'name' => 'Petugas SAPA',
+            'email' => 'petugas-status-message@example.com',
+            'no_id_card' => 'PETUGAS-STATUS-MESSAGE',
+            'password' => Hash::make('Password123!'),
+            'role' => 'petugas',
+            'is_active' => true,
+        ]);
         $laporan = Laporan::create([
             'id_pengguna' => $user->id,
             'nama_pelapor' => $user->name,
@@ -393,9 +401,16 @@ class PelaporAuthTest extends TestCase
 
         $this->actingAs($admin)->put('/laporan/' . $laporan->id_laporan . '/status', [
             'status_penanganan' => 'Sedang Diproses',
+            'assigned_petugas_id' => $petugas->id,
             'catatan_admin' => 'Catatan internal rahasia',
             'pesan_pelapor' => 'Petugas akan menghubungi Anda.',
         ])->assertRedirect('/laporan');
+
+        $this->assertDatabaseHas('laporan', [
+            'id_laporan' => $laporan->id_laporan,
+            'status_penanganan' => 'Sedang Diproses',
+            'assigned_petugas_id' => $petugas->id,
+        ]);
 
         $this->actingAs($user)->get('/pelapor/pengaduan/' . $laporan->id_laporan)
             ->assertSee('Petugas akan menghubungi Anda.')
@@ -454,7 +469,7 @@ class PelaporAuthTest extends TestCase
         $this->assertDatabaseHas('user', ['id' => $user->id, 'name' => 'Rani Pelapor']);
     }
 
-    public function test_admin_can_complete_an_open_report_but_completed_reports_are_locked(): void
+    public function test_admin_cannot_complete_an_open_report_and_completed_reports_remain_locked(): void
     {
         $admin = User::create([
             'name' => 'Admin Selesai',
@@ -476,7 +491,7 @@ class PelaporAuthTest extends TestCase
         $this->actingAs($admin)->put('/laporan/' . $completed->id_laporan . '/status', [
             'status_penanganan' => 'Ditolak',
             'catatan_admin' => 'Percobaan perubahan setelah selesai',
-        ])->assertRedirect('/laporan/' . $completed->id_laporan)->assertSessionHas('error');
+        ])->assertSessionHas('error');
         $this->assertDatabaseHas('laporan', [
             'id_laporan' => $completed->id_laporan,
             'status_penanganan' => 'Selesai',
@@ -491,15 +506,24 @@ class PelaporAuthTest extends TestCase
         ]);
         $this->actingAs($admin)->get('/laporan/' . $active->id_laporan)
             ->assertOk()
-            ->assertSee('Sedang Diproses / Diverifikasi')
-            ->assertSee('<option value="Selesai">Selesai</option>', false);
-        $this->actingAs($admin)->put('/laporan/' . $active->id_laporan . '/status', [
+            ->assertDontSee('<option value="Selesai">', false)
+            ->assertDontSee('<option value="Diproses">', false);
+        $response = $this->actingAs($admin)->put('/laporan/' . $active->id_laporan . '/status', [
             'status_penanganan' => 'Selesai',
             'pesan_pelapor' => 'Laporan telah selesai ditangani.',
-        ])->assertRedirect('/laporan');
+        ])->assertSessionHasErrors('status_penanganan');
 
-        $this->assertDatabaseHas('laporan', ['id_laporan' => $completed->id_laporan, 'status_penanganan' => 'Selesai']);
-        $this->assertDatabaseHas('laporan', ['id_laporan' => $active->id_laporan, 'status_penanganan' => 'Selesai']);
+        $response->assertRedirect();
+        $this->assertDatabaseHas('laporan', [
+            'id_laporan' => $completed->id_laporan,
+            'status_penanganan' => 'Selesai',
+            'catatan_admin' => null,
+        ]);
+        $this->assertDatabaseHas('laporan', [
+            'id_laporan' => $active->id_laporan,
+            'status_penanganan' => 'Sedang Diproses',
+            'assigned_petugas_id' => null,
+        ]);
     }
 
     public function test_rejected_report_remains_visible_but_does_not_block_a_new_report(): void

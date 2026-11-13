@@ -38,7 +38,7 @@ class MobileApiController extends Controller
         $reports = Laporan::where('id_pengguna', $request->user()->id)
             ->latest()
             ->get()
-            ->map(fn (Laporan $report) => $report->makeHidden('catatan_admin'));
+            ->map(fn (Laporan $report) => $this->pelaporReport($report));
 
         return response()->json(['status' => 'success', 'data' => $reports]);
     }
@@ -59,7 +59,7 @@ class MobileApiController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'data' => $report->makeHidden('catatan_admin'),
+            'data' => $this->pelaporReport($report),
         ]);
     }
 
@@ -100,7 +100,7 @@ class MobileApiController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Laporan berhasil terkirim ke admin.',
-            'data' => $report->fresh()->makeHidden('catatan_admin'),
+            'data' => $this->pelaporReport($report->fresh()),
         ], 201);
     }
 
@@ -126,7 +126,7 @@ class MobileApiController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Laporan berhasil diperbarui.',
-            'data' => $report->fresh()->makeHidden('catatan_admin'),
+            'data' => $this->pelaporReport($report->fresh()),
         ]);
     }
 
@@ -226,7 +226,10 @@ class MobileApiController extends Controller
 
         $user->fill($validated)->save();
 
-        return response()->json(['status' => 'success', 'data' => $user->fresh()]);
+        return response()->json([
+            'status' => 'success',
+            'data' => $user->fresh()->makeHidden('no_id_card'),
+        ]);
     }
 
     public function updatePassword(Request $request, int $userId)
@@ -253,5 +256,27 @@ class MobileApiController extends Controller
     {
         return Laporan::where('id_pengguna', $request->user()->id)
             ->findOrFail($id);
+    }
+
+    private function pelaporReport(Laporan $report): Laporan
+    {
+        $report->setAttribute(
+            'riwayat_status',
+            collect($report->riwayat_status ?? [])
+                ->filter(fn ($entry): bool => is_array($entry))
+                ->map(fn (array $entry): array => array_intersect_key(
+                    $entry,
+                    array_flip(['status', 'pesan', 'pada', 'oleh'])
+                ))
+                ->values()
+                ->all()
+        );
+
+        return $report->makeHidden([
+            'catatan_admin',
+            'catatan_petugas',
+            'assigned_petugas_id',
+            'notification_read_events',
+        ]);
     }
 }

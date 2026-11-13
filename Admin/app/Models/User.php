@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -15,6 +16,7 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $table = 'user'; // <-- TAMBAHKAN BARIS INI
+
     protected $attributes = [
         'is_active' => true,
     ];
@@ -29,6 +31,7 @@ class User extends Authenticatable
         'nik',
         'tanggal_lahir',
         'alamat',
+        'no_id_card',
         'email',
         'no_hp',
         'role',
@@ -42,6 +45,11 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return strtolower($this->role ?? '') === 'admin';
+    }
+
+    public function assignedReports(): HasMany
+    {
+        return $this->hasMany(Laporan::class, 'assigned_petugas_id', 'id');
     }
 
     /**

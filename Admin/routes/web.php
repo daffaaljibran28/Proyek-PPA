@@ -5,6 +5,7 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\PelaporAuthController;
 use App\Http\Controllers\PelaporController;
 use App\Http\Controllers\AdminInformasiController;
+use App\Http\Controllers\AdminPetugasController;
 use App\Http\Controllers\AdminPenggunaController;
 use App\Http\Middleware\EnsurePelapor;
 use App\Http\Middleware\EnsureAdmin;
@@ -87,6 +88,9 @@ Route::middleware(['auth', EnsureAdmin::class])->group(function () {
     Route::get('/laporan/{id}', [LaporanController::class, 'show'])->name('laporan.show');
     Route::get('/laporan/{id}/bukti/{index}', [LaporanController::class, 'evidence'])->whereNumber('index')->name('laporan.evidence');
     Route::put('/laporan/{id}/status', [LaporanController::class, 'updateStatus'])->name('laporan.update-status');
+    Route::patch('/laporan/{id}/petugas', [LaporanController::class, 'assignPetugas'])
+        ->whereNumber('id')
+        ->name('laporan.assign-petugas');
 
     // Manajemen Informasi & Edukasi oleh Admin
     Route::get('/admin/informasi', [AdminInformasiController::class, 'index'])->name('admin.informasi.index');
@@ -104,6 +108,20 @@ Route::middleware(['auth', EnsureAdmin::class])->group(function () {
     Route::patch('/pengguna/{id}/status', [AdminPenggunaController::class, 'toggleStatus'])
         ->whereNumber('id')
         ->name('pengguna.toggle-status');
+
+    // Manajemen akun Petugas
+    Route::get('/petugas', [AdminPetugasController::class, 'index'])->name('admin.petugas.index');
+    Route::get('/petugas/create', [AdminPetugasController::class, 'create'])->name('admin.petugas.create');
+    Route::post('/petugas', [AdminPetugasController::class, 'store'])->name('admin.petugas.store');
+    Route::get('/petugas/{id}/edit', [AdminPetugasController::class, 'edit'])
+        ->whereNumber('id')
+        ->name('admin.petugas.edit');
+    Route::put('/petugas/{id}', [AdminPetugasController::class, 'update'])
+        ->whereNumber('id')
+        ->name('admin.petugas.update');
+    Route::patch('/petugas/{id}/status', [AdminPetugasController::class, 'toggleStatus'])
+        ->whereNumber('id')
+        ->name('admin.petugas.toggle-status');
 
     Route::get('/pengguna/login', function () {
         return view('pengguna.login');

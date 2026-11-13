@@ -28,6 +28,7 @@
             <option value="">Semua Status</option>
             <option value="Menunggu Verifikasi" {{ request('status') == 'Menunggu Verifikasi' ? 'selected' : '' }}>Menunggu Verifikasi</option>
             <option value="Sedang Diproses" {{ request('status') == 'Sedang Diproses' ? 'selected' : '' }}>Sedang Diproses</option>
+            <option value="Diproses" {{ request('status') == 'Diproses' ? 'selected' : '' }}>Diproses</option>
             <option value="Selesai" {{ request('status') == 'Selesai' ? 'selected' : '' }}>Selesai</option>
             <option value="Ditolak" {{ request('status') == 'Ditolak' ? 'selected' : '' }}>Ditolak</option>
         </select>
@@ -40,12 +41,13 @@
         <div class="overflow-x-auto">
             <table class="w-full table-fixed text-left border-collapse">
                 <colgroup>
-                    <col class="w-[14%]">
-                    <col class="w-[17%]">
-                    <col class="w-[12%]">
-                    <col class="w-[22%]">
+                    <col class="w-[13%]">
+                    <col class="w-[15%]">
                     <col class="w-[11%]">
-                    <col class="w-[16%]">
+                    <col class="w-[20%]">
+                    <col class="w-[10%]">
+                    <col class="w-[13%]">
+                    <col class="w-[10%]">
                     <col class="w-[8%]">
                 </colgroup>
                 <thead>
@@ -56,6 +58,7 @@
                         <th class="py-3 px-2 md:px-3">Lokasi</th>
                         <th class="py-3 px-2 md:px-3">Tanggal</th>
                         <th class="py-3 px-2 md:px-3 text-center">Status</th>
+                        <th class="py-3 px-2 md:px-3">Petugas</th>
                         <th class="py-3 px-2 md:px-3 text-center">Aksi</th>
                     </tr>
                 </thead>
@@ -81,8 +84,10 @@
                         <td class="py-4 px-2 md:px-3 text-center">
                             @if($item->status_penanganan == 'Menunggu Verifikasi')
                                 <span class="inline-flex max-w-full justify-center rounded-full bg-amber-50 px-2 md:px-3 py-1 text-center font-bold text-amber-600">Menunggu Verifikasi</span>
-                            @elseif($item->status_penanganan == 'Sedang Diproses' || $item->status_penanganan == 'Diproses')
+                            @elseif($item->status_penanganan == 'Sedang Diproses')
                                 <span class="inline-flex max-w-full justify-center rounded-full bg-blue-50 px-2 md:px-3 py-1 text-center font-bold text-blue-600">Sedang Diproses</span>
+                            @elseif($item->status_penanganan == 'Diproses')
+                                <span class="inline-flex max-w-full justify-center rounded-full bg-indigo-50 px-2 md:px-3 py-1 text-center font-bold text-indigo-600">Diproses</span>
                             @elseif($item->status_penanganan == 'Selesai')
                                 <span class="inline-flex max-w-full justify-center rounded-full bg-emerald-50 px-2 md:px-3 py-1 text-center font-bold text-emerald-600">Selesai</span>
                             @elseif($item->status_penanganan == 'Ditolak')
@@ -91,13 +96,16 @@
                                 <span class="inline-flex max-w-full justify-center rounded-full bg-gray-100 px-2 md:px-3 py-1 text-center font-bold text-gray-600">{{ $item->status_penanganan }}</span>
                             @endif
                         </td>
+                        <td class="py-4 px-2 md:px-3 text-gray-600 break-words">
+                            {{ $item->petugas?->name ?? ($item->assigned_petugas_id === null && $item->status_penanganan === 'Sedang Diproses' ? 'Belum ditugaskan' : '-') }}
+                        </td>
                         <td class="py-4 px-2 md:px-3 text-center">
                             <a href="{{ route('laporan.show', $item->id_laporan) }}" class="inline-block rounded-lg bg-rose-500 px-2 md:px-3 py-1.5 font-bold text-white transition hover:bg-rose-600">Lihat</a>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="text-center py-8 text-gray-400">Belum ada data laporan masuk.</td>
+                        <td colspan="8" class="text-center py-8 text-gray-400">Belum ada data laporan masuk.</td>
                     </tr>
                     @endforelse
                 </tbody>

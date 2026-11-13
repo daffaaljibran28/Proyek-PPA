@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Laporan extends Model
 {
@@ -23,4 +24,9 @@ class Laporan extends Model
         'tanggal_kejadian' => 'datetime',
         'riwayat_status' => 'array',
     ];
+
+    public function petugas(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_petugas_id');
+    }
 }

@@ -55,7 +55,7 @@ class AuthController extends Controller
 
         if (
             ! $user
-            || $user->isAdmin()
+            || strtolower((string) $user->role) !== 'pengguna'
             || ! $user->is_active
             || ! Hash::check($request->password, $user->password)
         ) {
@@ -71,7 +71,7 @@ class AuthController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Login berhasil',
-            'data' => [...$user->toArray(), 'token' => $token],
+            'data' => [...$user->makeHidden('no_id_card')->toArray(), 'token' => $token],
         ], 200);
     }
 

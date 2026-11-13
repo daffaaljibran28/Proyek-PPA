@@ -64,6 +64,13 @@ class MobileApiTest extends TestCase
         Storage::fake('local');
         $owner = $this->createUser('owner@example.test');
         $other = $this->createUser('other@example.test');
+        $petugas = User::create([
+            'name' => 'Petugas Privasi',
+            'email' => 'privacy-petugas@example.test',
+            'password' => Hash::make('Password123!'),
+            'role' => 'petugas',
+            'is_active' => true,
+        ]);
         $token = $owner->createToken('flutter-app')->plainTextToken;
 
         $created = $this->withToken($token)->post('/api/lapor', [
@@ -114,8 +121,18 @@ class MobileApiTest extends TestCase
 
         Laporan::where('id_laporan', $reportId)->update([
             'status_penanganan' => 'Sedang Diproses',
+            'assigned_petugas_id' => $petugas->id,
             'catatan_admin' => 'Petugas sedang menindaklanjuti.',
+            'catatan_petugas' => 'Catatan internal Petugas yang rahasia.',
             'pesan_pelapor' => 'Petugas sedang meninjau laporan Anda.',
+            'riwayat_status' => json_encode([[
+                'status' => 'Sedang Diproses',
+                'pesan' => 'Petugas sedang meninjau laporan Anda.',
+                'pada' => now()->toIso8601String(),
+                'oleh' => 'Petugas',
+                'catatan_internal' => 'Field internal pada riwayat.',
+                'assigned_petugas_id' => $petugas->id,
+            ]]),
         ]);
         $notificationResponse = $this->withToken($token)->getJson("/api/notifikasi/{$owner->id}")
             ->assertOk()
@@ -123,6 +140,26 @@ class MobileApiTest extends TestCase
             ->assertJsonPath('data.0.pesan', 'Petugas sedang meninjau laporan Anda.')
             ->assertJsonMissingPath('data.0.catatan_admin');
         $notificationResponse->assertDontSee('Petugas sedang menindaklanjuti.');
+        $reportList = $this->withToken($token)->getJson('/api/riwayat')
+            ->assertOk()
+            ->assertJsonMissingPath('data.0.assigned_petugas_id')
+            ->assertJsonMissingPath('data.0.catatan_petugas')
+            ->assertJsonMissingPath('data.0.catatan_admin')
+            ->assertJsonPath('data.0.riwayat_status.0.status', 'Sedang Diproses')
+            ->assertJsonPath('data.0.riwayat_status.0.pesan', 'Petugas sedang meninjau laporan Anda.')
+            ->assertJsonMissingPath('data.0.riwayat_status.0.catatan_internal')
+            ->assertJsonMissingPath('data.0.riwayat_status.0.assigned_petugas_id');
+        $reportList->assertDontSee('Catatan internal Petugas yang rahasia.');
+        $reportList->assertDontSee('Field internal pada riwayat.');
+
+        $latestReport = $this->withToken($token)->getJson('/api/laporan-terakhir')
+            ->assertOk()
+            ->assertJsonMissingPath('data.assigned_petugas_id')
+            ->assertJsonMissingPath('data.catatan_petugas')
+            ->assertJsonMissingPath('data.catatan_admin')
+            ->assertJsonMissingPath('data.riwayat_status.0.catatan_internal')
+            ->assertJsonMissingPath('data.riwayat_status.0.assigned_petugas_id');
+        $latestReport->assertDontSee('Catatan internal Petugas yang rahasia.');
         $this->withToken($token)->deleteJson("/api/notifikasi/{$owner->id}/{$reportId}")
             ->assertOk();
         $this->withToken($token)->getJson("/api/notifikasi/{$owner->id}")
