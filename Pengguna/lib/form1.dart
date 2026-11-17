@@ -132,7 +132,7 @@ class _Form1PageState extends State<Form1Page> {
                           size: 14, color: AppTheme.primaryPink),
                       const SizedBox(width: 4),
                       Text(
-                        'Pilih di Peta',
+                        'Pilih di Peta (Google Maps)',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
@@ -171,30 +171,13 @@ class _Form1PageState extends State<Form1Page> {
           _label('Penjelasan Kejadian'),
           TextField(
             controller: _kronologiCtrl,
-            maxLines: 3,
-            maxLength: 1500,
-            buildCounter: (
-              context, {
-              required currentLength,
-              required isFocused,
-              maxLength,
-            }) =>
-                Text(
-              '$currentLength / $maxLength karakter',
-              textAlign: TextAlign.end,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 11,
-                color: Colors.grey.shade600,
-              ),
-            ),
+            maxLines: 4,
             style: GoogleFonts.plusJakartaSans(
                 fontSize: 13, color: Colors.black87),
             decoration: InputDecoration(
-              hintText:
-                  'Ceritakan kronologi kejadian secara rinci (misal: apa yang terjadi, siapa terduga pelaku, bagaimana kondisi Anda saat ini, atau dampak yang dialami).',
+              hintText: 'Ceritakan kronologi kejadian secara singkat...',
               hintStyle: GoogleFonts.plusJakartaSans(
                   fontSize: 13, color: Colors.grey.shade400),
-              helperText: 'Minimal 100 karakter',
               filled: true,
               fillColor: Colors.white,
               contentPadding:
@@ -247,18 +230,6 @@ class _Form1PageState extends State<Form1Page> {
                       content: Text('Harap isi kronologi kejadian!',
                           style:
                               GoogleFonts.plusJakartaSans(color: Colors.white)),
-                    ),
-                  );
-                  return;
-                }
-                final kronologi = _kronologiCtrl.text.trim();
-                if (kronologi.length < 100) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Penjelasan kejadian minimal 100 karakter.',
-                        style: GoogleFonts.plusJakartaSans(color: Colors.white),
-                      ),
                     ),
                   );
                   return;

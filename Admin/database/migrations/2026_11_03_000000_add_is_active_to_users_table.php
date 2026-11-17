@@ -8,7 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (! Schema::hasColumn('user', 'is_active')) {
+        if (
+            Schema::hasTable('user') &&
+            !Schema::hasColumn('user', 'is_active')
+        ) {
             Schema::table('user', function (Blueprint $table) {
                 $table->boolean('is_active')->default(true);
             });
@@ -17,7 +20,10 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (Schema::hasColumn('user', 'is_active')) {
+        if (
+            Schema::hasTable('user') &&
+            Schema::hasColumn('user', 'is_active')
+        ) {
             Schema::table('user', function (Blueprint $table) {
                 $table->dropColumn('is_active');
             });
