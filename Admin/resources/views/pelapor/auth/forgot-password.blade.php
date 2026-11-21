@@ -42,12 +42,16 @@
                         <path d="M0,160L48,176C96,192,192,224,288,213.3C384,203,480,149,576,138.7C672,128,768,160,864,186.7C960,213,1056,235,1152,218.7C1248,203,1344,149,1392,122.7L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
                     </svg>
                 </div>
-                <div class="absolute -bottom-6 left-1/2 z-10 flex h-20 w-20 -translate-x-1/2 items-center justify-center rounded-full border-4 border-white bg-white p-3 shadow-lg shadow-rose-200/60">
-                    <svg class="h-full w-full text-brand-button" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
-                        <path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08v0c.82.82 2.13.85 3 .07l2.07-1.9"/>
-                        <path d="m14 10 1.5 1.5"/>
-                    </svg>
+
+                <!-- Logo SAPA Mengambang di Tengah -->
+                <div class="absolute -bottom-6 left-1/2 z-20 -translate-x-1/2 transform">
+                    <div class="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white bg-white p-2.5 shadow-lg shadow-rose-200/60">
+                        <img
+                            src="{{ asset('image/logo.png') }}"
+                            alt="Logo SAPA"
+                            class="h-full w-full object-contain select-none"
+                        >
+                    </div>
                 </div>
             </section>
 
