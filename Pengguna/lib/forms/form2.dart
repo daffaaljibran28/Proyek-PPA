@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'theme.dart';
-import 'header.dart';
-import 'konfirmasi.dart';
+import '../theme.dart';
+import '../widgets/header.dart';
+import '../forms/konfirmasi.dart';
 
 class Form2Page extends StatefulWidget {
   final String kategori;

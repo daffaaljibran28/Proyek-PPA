@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ppa_flutter/login.dart';
+import 'package:ppa_flutter/auth/login.dart';
 import 'package:ppa_flutter/main.dart';
 import 'package:ppa_flutter/theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';

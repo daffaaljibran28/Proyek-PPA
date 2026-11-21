@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'theme.dart';
-import 'header.dart';
-import 'login.dart';
-import 'sukses.dart';
+import '../theme.dart';
+import '../widgets/header.dart';
+import '../auth/login.dart';
+import '../forms/sukses.dart';
 
 class KonfirmasiPage extends StatefulWidget {
   final String kategori;

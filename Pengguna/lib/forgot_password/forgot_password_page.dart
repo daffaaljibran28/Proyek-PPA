@@ -71,6 +71,7 @@ class ForgotPasswordPage extends StatelessWidget {
                               child: Container(
                                 width: 78,
                                 height: 78,
+                                padding: const EdgeInsets.all(7),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   shape: BoxShape.circle,
@@ -82,10 +83,9 @@ class ForgotPasswordPage extends StatelessWidget {
                                     ),
                                   ],
                                 ),
-                                child: Icon(
-                                  icon,
-                                  size: 40,
-                                  color: _primaryPink,
+                                child: Image.asset(
+                                  'assets/images/logo.png',
+                                  fit: BoxFit.contain,
                                 ),
                               ),
                             ),

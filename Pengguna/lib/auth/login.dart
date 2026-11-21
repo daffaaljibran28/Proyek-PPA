@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'register.dart';
-import 'navbar.dart';
-import 'theme.dart';
-import 'forgot_password/forgot_password_screen.dart';
-import 'forgot_password/forgot_password_service.dart';
+import '../auth/register.dart';
+import '../widgets/navbar.dart';
+import '../theme.dart';
+import '../forgot_password/forgot_password_screen.dart';
+import '../forgot_password/forgot_password_service.dart';
 
 class Login extends StatefulWidget {
   final VoidCallback? onLoginSuccess;
@@ -158,6 +158,7 @@ class _LoginState extends State<Login> {
                         child: Container(
                           width: 68,
                           height: 68,
+                          padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             shape: BoxShape.circle,
@@ -169,10 +170,9 @@ class _LoginState extends State<Login> {
                               ),
                             ],
                           ),
-                          child: const Icon(
-                            Icons.handshake_outlined,
-                            color: headerPink,
-                            size: 36,
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            fit: BoxFit.contain,
                           ),
                         ),
                       ),

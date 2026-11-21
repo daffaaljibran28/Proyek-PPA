@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'theme.dart';
-import 'login.dart';
+import 'package:ppa_flutter/theme.dart';
+import 'package:ppa_flutter/auth/login.dart';
 
 class BaseLayout extends StatelessWidget {
   final Widget child;

@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'theme.dart';
-import 'header.dart';
-import 'detail.dart';
+import '../theme.dart';
+import '../widgets/header.dart';
+import '../screens/detail.dart';
 
 class RiwayatPage extends StatefulWidget {
   const RiwayatPage({super.key});

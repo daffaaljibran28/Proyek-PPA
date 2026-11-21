@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
-import 'theme.dart';
-import 'header.dart';
-import 'form1.dart';
-import 'progres.dart';
-import 'edukasi.dart';
+import '../theme.dart';
+import '../widgets/header.dart';
+import '../forms/form1.dart';
+import '../screens/progres.dart';
+import '../screens/edukasi.dart';
 
 class HomePage extends StatefulWidget {
   final Function(int) onTabChange;

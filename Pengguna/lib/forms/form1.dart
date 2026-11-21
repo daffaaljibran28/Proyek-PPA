@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'theme.dart';
-import 'header.dart';
-import 'form2.dart';
-import 'map_picker_dialog.dart';
+import '../theme.dart';
+import '../widgets/header.dart';
+import '../forms/form2.dart';
+import '../widgets/map_picker_dialog.dart';
 
 class Form1Page extends StatefulWidget {
   const Form1Page({super.key});

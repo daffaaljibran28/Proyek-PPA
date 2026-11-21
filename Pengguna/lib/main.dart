@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'theme.dart';
-import 'navbar.dart';
-import 'login.dart'; // Import halaman login
+import '../theme.dart';
+import '../widgets/navbar.dart';
+import '../auth/login.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

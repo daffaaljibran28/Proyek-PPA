@@ -6,8 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
-import 'header.dart';
-import 'theme.dart';
+import '../widgets/header.dart';
+import '../theme.dart';
 
 class EdukasiPage extends StatefulWidget {
   const EdukasiPage({super.key});

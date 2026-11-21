@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'theme.dart';
-import 'header.dart';
-import 'navbar.dart';
+import '../theme.dart';
+import '../widgets/header.dart';
+import '../widgets/navbar.dart';
 
 class SuksesPage extends StatelessWidget {
   final String nomorLaporan;

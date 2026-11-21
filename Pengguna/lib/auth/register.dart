@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'theme.dart';
+import 'package:ppa_flutter/theme.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -502,6 +502,7 @@ class _RegisterState extends State<Register> {
                         child: Container(
                           width: 68,
                           height: 68,
+                          padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             shape: BoxShape.circle,
@@ -513,10 +514,9 @@ class _RegisterState extends State<Register> {
                               ),
                             ],
                           ),
-                          child: const Icon(
-                            Icons.handshake_outlined,
-                            color: headerPink,
-                            size: 36,
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            fit: BoxFit.contain,
                           ),
                         ),
                       ),
