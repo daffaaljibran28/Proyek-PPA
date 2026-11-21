@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'register.dart';
 import 'navbar.dart';
 import 'theme.dart';
+import 'forgot_password/forgot_password_screen.dart';
+import 'forgot_password/forgot_password_service.dart';
 
 class Login extends StatefulWidget {
   final VoidCallback? onLoginSuccess;
@@ -315,7 +317,30 @@ class _LoginState extends State<Login> {
                     const SizedBox(height: 5),
                     Center(
                       child: TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => ForgotPasswordScreen(
+                                service: ForgotPasswordService(
+                                  baseUrl: AppTheme.apiUrl,
+                                ),
+                                loginBuilder: (_) => const Login(),
+                              ),
+                            ),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: primaryPink,
+                          backgroundColor: const Color(0xFFFFF1F4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 8,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
                         child: Text(
                           'Lupa Password?',
                           style: GoogleFonts.plusJakartaSans(

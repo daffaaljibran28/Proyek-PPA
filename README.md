@@ -72,3 +72,9 @@ flutter run --dart-define=API_BASE_URL=http://192.168.1.10:8000/api
 Ganti alamat tersebut sesuai IP komputer Anda. HTTP hanya diizinkan pada Android debug untuk pengembangan lokal. Gunakan HTTPS untuk build produksi.
 
 Login Flutter menggunakan email atau nomor HP. Token sesi disimpan pada perangkat dan dikirim untuk API laporan, notifikasi, serta profil.
+
+### Reset Password melalui OTP
+
+API reset password menyediakan `POST /api/forgot-password/send-otp`, `POST /api/forgot-password/verify-otp`, dan `POST /api/forgot-password/reset`. Jalankan `php artisan migrate` pada folder `Admin` untuk membuat tabel OTP, lalu pastikan konfigurasi `MAIL_*` pada `.env` terhubung ke layanan email agar kode OTP dapat dikirim.
+
+Halaman web tersedia di `/pelapor/lupa-password`; aplikasi Pengguna dan Petugas memiliki layar OTP modular di `lib/forgot_password/`. Atur URL API saat menjalankan Flutter melalui `--dart-define=API_BASE_URL=.../api` bila alamat default tidak sesuai.

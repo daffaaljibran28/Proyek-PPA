@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ForgotPasswordController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MobileApiController;
 use App\Http\Controllers\PetugasApiController;
@@ -14,6 +15,11 @@ Route::middleware('throttle:10,1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/petugas/login', [PetugasAuthController::class, 'login']);
 });
+
+Route::post('/forgot-password/send-otp', [ForgotPasswordController::class, 'sendOtp'])
+    ->middleware('throttle:3,1');
+Route::post('/forgot-password/verify-otp', [ForgotPasswordController::class, 'verifyOtp']);
+Route::post('/forgot-password/reset', [ForgotPasswordController::class, 'resetPassword']);
 
 Route::get('/informasi', [MobileApiController::class, 'informations']);
 
