@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
-import '../screens/home.dart';
-import '../screens/riwayat.dart';
-import '../screens/profil.dart';
+import '../screens/home_screen.dart';
+import '../screens/riwayat_screen.dart';
+import '../screens/profil_screen.dart';
 
 class NavbarPage extends StatefulWidget {
   final int initialIndex;

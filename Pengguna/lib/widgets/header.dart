@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'package:ppa_flutter/theme.dart';
-import 'package:ppa_flutter/auth/login.dart';
+import '../theme.dart';
+import '../auth/login.dart';
 
 class BaseLayout extends StatelessWidget {
   final Widget child;
@@ -22,181 +22,190 @@ class BaseLayout extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              decoration: const BoxDecoration(
-                color: AppTheme.primaryPink,
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(24),
-                  bottomRight: Radius.circular(24),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  showBackButton
-                      ? Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.16),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.24),
-                            ),
-                          ),
-                          child: IconButton(
-                            tooltip: 'Kembali',
-                            icon: const Icon(Icons.arrow_back_rounded,
-                                color: Colors.white, size: 22),
-                            onPressed: () async {
-                              await Navigator.maybePop(context);
-                            },
-                          ),
-                        )
-                      : Row(
-                          children: [
-                            Container(
-                              width: 42,
-                              height: 42,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.08),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.volunteer_activism,
-                                color: AppTheme.primaryPink,
-                                size: 25,
-                              ),
-                            ),
-                            const SizedBox(width: 9),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'SAPA',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    color: Colors.white,
-                                    fontSize: 17,
-                                    height: 1.1,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                Text(
-                                  'Sistem Pelaporan Aman',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    color: Colors.white.withValues(alpha: 0.8),
-                                    fontSize: 9,
-                                    height: 1.2,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                  Row(
-                    children: [
-                      const _NotificationBell(),
-                      const SizedBox(width: 4),
-                      PopupMenuButton<String>(
-                        offset: const Offset(0, 45),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        onSelected: (value) async {
-                          if (value == 'logout') {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: Text('Keluar Akun',
-                                    style: GoogleFonts.plusJakartaSans(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16)),
-                                content: Text(
-                                    'Apakah Anda yakin ingin keluar dari aplikasi?',
-                                    style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 13)),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: Text('Batal',
-                                        style: GoogleFonts.plusJakartaSans(
-                                            color: Colors.grey)),
-                                  ),
-                                  TextButton(
-                                    onPressed: () async {
-                                      try {
-                                        await UserSession.logout();
-                                      } catch (error) {
-                                        debugPrint('Logout gagal: $error');
-                                        await UserSession.clear();
-                                      }
-                                      if (!context.mounted) return;
-                                      Navigator.pop(context);
-                                      Navigator.pushAndRemoveUntil(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                Login(onLoginSuccess: () {})),
-                                        (route) => false,
-                                      );
-                                    },
-                                    child: Text('Keluar',
-                                        style: GoogleFonts.plusJakartaSans(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.red)),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }
-                        },
-                        itemBuilder: (BuildContext context) => [
-                          PopupMenuItem<String>(
-                            value: 'logout',
-                            child: Row(
-                              children: [
-                                const Icon(Icons.logout,
-                                    color: Colors.red, size: 18),
-                                const SizedBox(width: 10),
-                                Text(
-                                  'Keluar',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.red,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                        child: Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          child: const CircleAvatar(
-                            radius: 16,
-                            backgroundColor: Color(0xFFFFEEF2),
-                            child: Icon(Icons.person,
-                                color: AppTheme.primaryPink, size: 18),
-                          ),
-                        ),
-                      ),
+            ClipPath(
+              clipper: _BaseHeaderWaveClipper(),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFFFF719B),
+                      AppTheme.primaryPink,
                     ],
                   ),
-                ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    showBackButton
+                        ? Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.16),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.24),
+                              ),
+                            ),
+                            child: IconButton(
+                              tooltip: 'Kembali',
+                              icon: const Icon(Icons.arrow_back_rounded,
+                                  color: Colors.white, size: 22),
+                              onPressed: () async {
+                                await Navigator.maybePop(context);
+                              },
+                            ),
+                          )
+                        : Row(
+                            children: [
+                              Container(
+                                width: 42,
+                                height: 42,
+                                padding: const EdgeInsets.all(5),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                          Colors.black.withValues(alpha: 0.08),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: Image.asset(
+                                  'assets/images/logo.png',
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                              const SizedBox(width: 9),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'SAPA',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: Colors.white,
+                                      fontSize: 17,
+                                      height: 1.1,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Sistem Pelaporan Aman',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.85),
+                                      fontSize: 9,
+                                      height: 1.2,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                    Row(
+                      children: [
+                        const _NotificationBell(),
+                        const SizedBox(width: 4),
+                        PopupMenuButton<String>(
+                          offset: const Offset(0, 45),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          onSelected: (value) async {
+                            if (value == 'logout') {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text('Keluar Akun',
+                                      style: GoogleFonts.plusJakartaSans(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16)),
+                                  content: Text(
+                                      'Apakah Anda yakin ingin keluar dari aplikasi?',
+                                      style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 13)),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text('Batal',
+                                          style: GoogleFonts.plusJakartaSans(
+                                              color: Colors.grey)),
+                                    ),
+                                    TextButton(
+                                      onPressed: () async {
+                                        try {
+                                          await UserSession.logout();
+                                        } catch (error) {
+                                          debugPrint('Logout gagal: $error');
+                                          await UserSession.clear();
+                                        }
+                                        if (!context.mounted) return;
+                                        Navigator.pop(context);
+                                        Navigator.pushAndRemoveUntil(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (_) =>
+                                                  Login(onLoginSuccess: () {})),
+                                          (route) => false,
+                                        );
+                                      },
+                                      child: Text('Keluar',
+                                          style: GoogleFonts.plusJakartaSans(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.red)),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+                          },
+                          itemBuilder: (BuildContext context) => [
+                            PopupMenuItem<String>(
+                              value: 'logout',
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.logout,
+                                      color: Colors.red, size: 18),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    'Keluar',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: const CircleAvatar(
+                              radius: 16,
+                              backgroundColor: Color(0xFFFFEEF2),
+                              child: Icon(Icons.person,
+                                  color: AppTheme.primaryPink, size: 18),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
             Expanded(
@@ -209,6 +218,32 @@ class BaseLayout extends StatelessWidget {
   }
 }
 
+class _BaseHeaderWaveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.lineTo(0, size.height - 16);
+    path.quadraticBezierTo(
+      size.width * 0.25,
+      size.height + 4,
+      size.width * 0.5,
+      size.height - 10,
+    );
+    path.quadraticBezierTo(
+      size.width * 0.75,
+      size.height - 24,
+      size.width,
+      size.height - 10,
+    );
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
 class _NotificationBell extends StatefulWidget {
   const _NotificationBell();
 
@@ -217,7 +252,7 @@ class _NotificationBell extends StatefulWidget {
 }
 
 class _NotificationBellState extends State<_NotificationBell> {
-  late Future<List<Map<String, dynamic>>> _notifikasiFuture;
+  late Future<List> _notifikasiFuture;
 
   @override
   void initState() {
@@ -225,7 +260,7 @@ class _NotificationBellState extends State<_NotificationBell> {
     _notifikasiFuture = _ambilNotifikasi();
   }
 
-  Future<List<Map<String, dynamic>>> _ambilNotifikasi() async {
+  Future<List> _ambilNotifikasi() async {
     final idPengguna = UserSession.id;
     if (idPengguna == null) return [];
 
@@ -460,7 +495,7 @@ class _NotificationBellState extends State<_NotificationBell> {
               const Divider(height: 1),
               const SizedBox(height: 12),
               Expanded(
-                child: FutureBuilder<List<Map<String, dynamic>>>(
+                child: FutureBuilder<List>(
                   future: _notifikasiFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
@@ -611,7 +646,7 @@ class _NotificationBellState extends State<_NotificationBell> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Map<String, dynamic>>>(
+    return FutureBuilder<List>(
       future: _notifikasiFuture,
       builder: (context, snapshot) {
         final jumlah = snapshot.data?.length ?? 0;

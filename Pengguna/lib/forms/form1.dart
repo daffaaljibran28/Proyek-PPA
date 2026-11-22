@@ -28,6 +28,14 @@ class _Form1PageState extends State<Form1Page> {
 
   final List<String> _listSebagai = ['Korban', 'Saksi', 'Keluarga Korban'];
 
+  @override
+  void dispose() {
+    _lokasiCtrl.dispose();
+    _tanggalCtrl.dispose();
+    _kronologiCtrl.dispose();
+    super.dispose();
+  }
+
   Future<void> _pilihTanggal() async {
     final DateTime now = DateTime.now();
     final DateTime? picked = await showDatePicker(
@@ -175,7 +183,8 @@ class _Form1PageState extends State<Form1Page> {
             style: GoogleFonts.plusJakartaSans(
                 fontSize: 13, color: Colors.black87),
             decoration: InputDecoration(
-              hintText: 'Ceritakan kronologi kejadian secara singkat...',
+              hintText:
+                  'Ceritakan kronologi kejadian secara singkat (minimal 100 karakter)...',
               hintStyle: GoogleFonts.plusJakartaSans(
                   fontSize: 13, color: Colors.grey.shade400),
               filled: true,
@@ -204,7 +213,11 @@ class _Form1PageState extends State<Form1Page> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12))),
               onPressed: () async {
-                if (_lokasiCtrl.text.isEmpty) {
+                final lokasi = _lokasiCtrl.text.trim();
+                final tanggal = _tanggalCtrl.text.trim();
+                final kronologi = _kronologiCtrl.text.trim();
+
+                if (lokasi.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Harap isi lokasi kejadian!',
@@ -214,7 +227,7 @@ class _Form1PageState extends State<Form1Page> {
                   );
                   return;
                 }
-                if (_tanggalCtrl.text.isEmpty) {
+                if (tanggal.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Harap pilih tanggal kejadian!',
@@ -224,7 +237,7 @@ class _Form1PageState extends State<Form1Page> {
                   );
                   return;
                 }
-                if (_kronologiCtrl.text.isEmpty) {
+                if (kronologi.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Harap isi kronologi kejadian!',
@@ -234,15 +247,27 @@ class _Form1PageState extends State<Form1Page> {
                   );
                   return;
                 }
+                if (kronologi.length < 100) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                          'Penjelasan kejadian minimal 100 karakter (saat ini ${kronologi.length} karakter).',
+                          style:
+                              GoogleFonts.plusJakartaSans(color: Colors.white)),
+                    ),
+                  );
+                  return;
+                }
+
                 final hasil = await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => Form2Page(
                       kategori: _kategori,
                       sebagai: _sebagai,
-                      lokasi: _lokasiCtrl.text,
-                      tanggal: _tanggalCtrl.text,
-                      kronologi: _kronologiCtrl.text,
+                      lokasi: lokasi,
+                      tanggal: tanggal,
+                      kronologi: kronologi,
                     ),
                   ),
                 );

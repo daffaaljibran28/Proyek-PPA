@@ -5,7 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
-import 'package:ppa_flutter/theme.dart';
+import '../theme.dart';
 
 class MapPickerDialog extends StatefulWidget {
   final String initialLocation;

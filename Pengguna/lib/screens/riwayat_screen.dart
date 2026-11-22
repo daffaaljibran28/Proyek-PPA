@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import '../theme.dart';
 import '../widgets/header.dart';
-import '../screens/detail.dart';
+import '../screens/detail_screen.dart';
 
 class RiwayatPage extends StatefulWidget {
   const RiwayatPage({super.key});
@@ -21,6 +21,23 @@ class _RiwayatPageState extends State<RiwayatPage> {
   void initState() {
     super.initState();
     _ambilRiwayat();
+  }
+
+  String _formatTanggal(dynamic raw) {
+    if (raw == null) return '-';
+    final text = raw.toString().trim();
+    if (text.isEmpty) return '-';
+
+    final parsed = DateTime.tryParse(text);
+    if (parsed != null) {
+      final local = parsed.toLocal();
+      final d = local.day.toString().padLeft(2, '0');
+      final m = local.month.toString().padLeft(2, '0');
+      final y = local.year.toString();
+      return '$d-$m-$y';
+    }
+
+    return text.contains('T') ? text.split('T').first : text;
   }
 
   // 1. Ambil Semua Daftar Riwayat
@@ -94,18 +111,21 @@ class _RiwayatPageState extends State<RiwayatPage> {
     }
   }
 
-  // 3. Dialog Form Edit Laporan
+  // 3. Dialog Form Edit Laporan (hanya aktif saat status == 'Menunggu Verifikasi')
   Future<void> _tampilkanDialogEdit(Map<String, dynamic> item) async {
+    final status = (item['status_penanganan'] ?? '').toString();
+    if (status != 'Menunggu Verifikasi') return;
+
     final idLaporan = item['id_laporan'] ?? item['id'];
     final kategoriController =
-        TextEditingController(text: item['kategori'] ?? '');
+        TextEditingController(text: (item['kategori'] ?? '').toString());
     final lokasiController = TextEditingController(
-      text: item['lokasi_kejadian'] ?? item['lokasi'] ?? '',
+      text: (item['lokasi_kejadian'] ?? item['lokasi'] ?? '').toString(),
     );
     final kronologiController =
-        TextEditingController(text: item['kronologi'] ?? '');
+        TextEditingController(text: (item['kronologi'] ?? '').toString());
 
-    showDialog(
+    await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -189,6 +209,14 @@ class _RiwayatPageState extends State<RiwayatPage> {
                       backgroundColor: Colors.green,
                     ),
                   );
+                } else if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                          'Laporan tidak dapat diedit pada status saat ini.'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
                 }
               } catch (_) {}
 
@@ -200,6 +228,10 @@ class _RiwayatPageState extends State<RiwayatPage> {
         ],
       ),
     );
+
+    kategoriController.dispose();
+    lokasiController.dispose();
+    kronologiController.dispose();
   }
 
   @override
@@ -223,8 +255,12 @@ class _RiwayatPageState extends State<RiwayatPage> {
                   itemCount: _list.length,
                   itemBuilder: (ctx, i) {
                     final item = _list[i];
+                    final itemMap = Map<String, dynamic>.from(item as Map);
                     final status =
-                        item['status_penanganan'] ?? 'Menunggu Verifikasi';
+                        (itemMap['status_penanganan'] ?? 'Menunggu Verifikasi')
+                            .toString();
+                    final bool bisaDiedit = status == 'Menunggu Verifikasi';
+
                     Color bg = AppTheme.badgeYellowBg;
                     Color txt = AppTheme.badgeYellowText;
                     if (status == 'Diproses' || status == 'Sedang Diproses') {
@@ -235,15 +271,16 @@ class _RiwayatPageState extends State<RiwayatPage> {
                       txt = AppTheme.badgeGreenText;
                     }
 
-                    // Format tanggal bersih tanpa T00:00:00.000000Z
-                    String rawTanggal =
-                        (item['tanggal_kejadian'] ?? '').toString();
-                    String cleanTanggal = rawTanggal.contains('T')
-                        ? rawTanggal.split('T').first
-                        : rawTanggal;
+                    final String cleanTanggal =
+                        _formatTanggal(itemMap['tanggal_kejadian']);
 
                     final idLaporan =
-                        item['id_laporan'] ?? item['id'] ?? (i + 1);
+                        itemMap['id_laporan'] ?? itemMap['id'] ?? (i + 1);
+                    final nomorLaporan =
+                        (itemMap['nomor_laporan'] ?? '').toString().trim();
+                    final teksNomor = nomorLaporan.isNotEmpty
+                        ? nomorLaporan
+                        : 'LAP-$idLaporan';
 
                     return Container(
                       margin: const EdgeInsets.only(bottom: 12),
@@ -254,7 +291,7 @@ class _RiwayatPageState extends State<RiwayatPage> {
                         border: Border.all(color: const Color(0xFFF0F0F2)),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.02),
+                            color: Colors.black.withValues(alpha: 0.02),
                             blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
@@ -268,14 +305,14 @@ class _RiwayatPageState extends State<RiwayatPage> {
                               onTap: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => DetailPage(laporan: item),
+                                  builder: (_) => DetailPage(laporan: itemMap),
                                 ),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    item['nomor_laporan'] ?? 'LAP-$idLaporan',
+                                    teksNomor,
                                     style: GoogleFonts.plusJakartaSans(
                                       color: AppTheme.primaryPink,
                                       fontWeight: FontWeight.bold,
@@ -284,7 +321,7 @@ class _RiwayatPageState extends State<RiwayatPage> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    item['kategori'] ?? '',
+                                    (itemMap['kategori'] ?? '').toString(),
                                     style: GoogleFonts.plusJakartaSans(
                                       fontWeight: FontWeight.w600,
                                       fontSize: 12,
@@ -322,12 +359,21 @@ class _RiwayatPageState extends State<RiwayatPage> {
                           ),
                           const SizedBox(width: 4),
 
-                          // Tombol Edit
+                          // Tombol Edit (nonaktif saat status bukan Menunggu Verifikasi)
                           IconButton(
-                            icon: const Icon(Icons.edit_outlined,
-                                color: Colors.blue, size: 20),
-                            tooltip: 'Edit Laporan',
-                            onPressed: () => _tampilkanDialogEdit(item),
+                            icon: Icon(
+                              Icons.edit_outlined,
+                              color: bisaDiedit
+                                  ? Colors.blue
+                                  : Colors.grey.shade400,
+                              size: 20,
+                            ),
+                            tooltip: bisaDiedit
+                                ? 'Edit Laporan'
+                                : 'Laporan hanya dapat diedit saat Menunggu Verifikasi',
+                            onPressed: bisaDiedit
+                                ? () => _tampilkanDialogEdit(itemMap)
+                                : null,
                           ),
 
                           // Tombol Hapus
