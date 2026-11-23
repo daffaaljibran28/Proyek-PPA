@@ -150,7 +150,12 @@ class LaporanController extends Controller
         }
 
         if ($request->filled('status')) {
-            $query->where('status_penanganan', $request->status);
+            $status = trim($request->status);
+            if ($status === 'Sedang Diproses') {
+                $query->whereIn('status_penanganan', ['Sedang Diproses', 'Diproses']);
+            } else {
+                $query->where('status_penanganan', $status);
+            }
         }
 
         $laporans = $query->with('petugas:id,name')->latest()->paginate(10)->withQueryString();

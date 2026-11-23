@@ -8,16 +8,57 @@ class DetailPage extends StatelessWidget {
 
   const DetailPage({super.key, required this.laporan});
 
+  String _formatTanggal(dynamic raw) {
+    if (raw == null) return '-';
+    final text = raw.toString().trim();
+    if (text.isEmpty) return '-';
+
+    final parsed = DateTime.tryParse(text);
+    if (parsed != null) {
+      final local = parsed.toLocal();
+      final d = local.day.toString().padLeft(2, '0');
+      final m = local.month.toString().padLeft(2, '0');
+      final y = local.year.toString();
+      return '$d-$m-$y';
+    }
+
+    return text.contains('T') ? text.split('T').first : text;
+  }
+
+  String? _resolveBuktiUrl(dynamic raw, dynamic idLaporan) {
+    if (raw == null) return null;
+    final path = raw.toString().replaceAll(r'\/', '/').trim();
+    if (path.isEmpty || path.toLowerCase() == 'null') return null;
+
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+
+    final firstPath =
+        path.split(',').first.trim().replaceFirst(RegExp(r'^/+'), '');
+    if (firstPath.startsWith('laporan/') && idLaporan != null) {
+      return '${AppTheme.apiUrl}/laporan/$idLaporan/bukti/0';
+    }
+
+    final baseHost = AppTheme.apiUrl.replaceFirst(RegExp(r'/api/?$'), '');
+    final cleanPath = firstPath;
+
+    if (cleanPath.startsWith('storage/')) {
+      return '$baseHost/$cleanPath';
+    }
+    return '$baseHost/storage/$cleanPath';
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Format tanggal sederhana agar tidak panjang dengan zona waktu
-    String rawTanggal = laporan['tanggal_kejadian'] ?? '-';
-    String tanggalFormatted = rawTanggal.contains('T')
-        ? rawTanggal.split('T').first
-        : rawTanggal;
+    final tanggalFormatted = _formatTanggal(laporan['tanggal_kejadian']);
 
-    // Tentukan warna badge status
-    String statusText = laporan['status_penanganan'] ?? 'Menunggu Verifikasi';
+    final nomorLaporan = (laporan['nomor_laporan'] ?? '').toString().trim();
+    final idLaporan = laporan['id_laporan'] ?? laporan['id'] ?? '';
+    final teksNomor = nomorLaporan.isNotEmpty ? nomorLaporan : 'LAP-$idLaporan';
+
+    String statusText =
+        (laporan['status_penanganan'] ?? 'Menunggu Verifikasi').toString();
     Color bgColor = const Color(0xFFFEF3C7); // Kuning
     Color textColor = const Color(0xFFD97706);
 
@@ -28,6 +69,14 @@ class DetailPage extends StatelessWidget {
       bgColor = const Color(0xFFD1FAE5); // Hijau
       textColor = const Color(0xFF059669);
     }
+
+    final buktiRaw = laporan['bukti_lampiran'] ??
+        laporan['bukti_foto'] ??
+        laporan['foto'] ??
+        laporan['lampiran'] ??
+        laporan['bukti'] ??
+        laporan['bukti_kejadian'];
+    final buktiUrl = _resolveBuktiUrl(buktiRaw, idLaporan);
 
     return BaseLayout(
       showBackButton: true,
@@ -41,7 +90,7 @@ class DetailPage extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.03),
+                color: Colors.black.withValues(alpha: 0.03),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -55,7 +104,7 @@ class DetailPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'LAP-${laporan['id_laporan'] ?? ''}',
+                    teksNomor,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -63,7 +112,8 @@ class DetailPage extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       color: bgColor,
                       borderRadius: BorderRadius.circular(8),
@@ -82,11 +132,13 @@ class DetailPage extends StatelessWidget {
               const Divider(height: 24, thickness: 1),
 
               // Detail Informasi
-              _buildInfoItem('Kategori Kejadian', laporan['kategori'] ?? '-'),
+              _buildInfoItem(
+                  'Kategori Kejadian', (laporan['kategori'] ?? '-').toString()),
               const SizedBox(height: 12),
-              _buildInfoItem('Sebagai', laporan['sebagai'] ?? '-'),
+              _buildInfoItem('Sebagai', (laporan['sebagai'] ?? '-').toString()),
               const SizedBox(height: 12),
-              _buildInfoItem('Lokasi Kejadian', laporan['lokasi_kejadian'] ?? '-'),
+              _buildInfoItem('Lokasi Kejadian',
+                  (laporan['lokasi_kejadian'] ?? '-').toString()),
               const SizedBox(height: 12),
               _buildInfoItem('Tanggal Kejadian', tanggalFormatted),
               const SizedBox(height: 16),
@@ -109,7 +161,7 @@ class DetailPage extends StatelessWidget {
                   border: Border.all(color: const Color(0xFFF0F0F2)),
                 ),
                 child: Text(
-                  laporan['kronologi'] ?? 'Tidak ada kronologi.',
+                  (laporan['kronologi'] ?? 'Tidak ada kronologi.').toString(),
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 13,
                     color: AppTheme.textDark,
@@ -117,6 +169,46 @@ class DetailPage extends StatelessWidget {
                   ),
                 ),
               ),
+
+              if (buktiUrl != null) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'Bukti Foto:',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textDark,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    buktiUrl,
+                    headers: UserSession.authHeaders(),
+                    width: double.infinity,
+                    height: 220,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      width: double.infinity,
+                      height: 120,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8F9FA),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppTheme.borderPink),
+                      ),
+                      child: Text(
+                        'Gambar bukti tidak dapat dimuat.',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          color: AppTheme.textGrey,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

@@ -27,6 +27,23 @@ class _HomePageState extends State<HomePage> {
     _ambilData();
   }
 
+  String _formatTanggal(dynamic raw) {
+    if (raw == null) return '-';
+    final text = raw.toString().trim();
+    if (text.isEmpty) return '-';
+
+    final parsed = DateTime.tryParse(text);
+    if (parsed != null) {
+      final local = parsed.toLocal();
+      final d = local.day.toString().padLeft(2, '0');
+      final m = local.month.toString().padLeft(2, '0');
+      final y = local.year.toString();
+      return '$d-$m-$y';
+    }
+
+    return text.contains('T') ? text.split('T').first : text;
+  }
+
   Future<void> _ambilData() async {
     setState(() => _isLoading = true);
     try {
@@ -46,7 +63,8 @@ class _HomePageState extends State<HomePage> {
         final data = jsonDecode(res.body);
         if (data['status'] == 'success' && (data['data'] as List).isNotEmpty) {
           setState(() {
-            _laporanTerakhir = data['data'][0];
+            _laporanTerakhir =
+                Map<String, dynamic>.from(data['data'][0] as Map);
             _isLoading = false;
           });
           return;
@@ -93,12 +111,13 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // --- FUNGSI CEK STATUS SEBELUM BUKA FORM (Mencegah buat laporan jika belum Selesai) ---
+  // --- FUNGSI CEK STATUS SEBELUM BUKA FORM ---
   Future<void> _cekDanBukaForm() async {
     if (_laporanTerakhir != null) {
-      String status = _laporanTerakhir!['status_penanganan'] ?? 'Selesai';
+      final String status =
+          (_laporanTerakhir!['status_penanganan'] ?? 'Selesai').toString();
 
-      if (status != 'Selesai') {
+      if (status != 'Selesai' && status != 'Ditolak') {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -123,48 +142,50 @@ class _HomePageState extends State<HomePage> {
         return;
       }
 
-      final waktuPembaruan = DateTime.tryParse(
-        (_laporanTerakhir!['completed_at'] ?? '').toString(),
-      );
-      if (waktuPembaruan != null) {
-        final waktuBisaMelapor =
-            waktuPembaruan.toLocal().add(const Duration(days: 2));
-        if (DateTime.now().isBefore(waktuBisaMelapor)) {
-          final tanggalBisaMelapor =
-              '${waktuBisaMelapor.day.toString().padLeft(2, '0')}-'
-              '${waktuBisaMelapor.month.toString().padLeft(2, '0')}-'
-              '${waktuBisaMelapor.year} pukul '
-              '${waktuBisaMelapor.hour.toString().padLeft(2, '0')}:'
-              '${waktuBisaMelapor.minute.toString().padLeft(2, '0')}';
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: Text(
-                'Belum Bisa Membuat Laporan',
-                style: GoogleFonts.plusJakartaSans(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              content: Text(
-                'Laporan baru dapat dibuat 2 hari setelah laporan terakhir selesai, yaitu pada $tanggalBisaMelapor.',
-                style: GoogleFonts.plusJakartaSans(fontSize: 13),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    'OK',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryPink,
-                    ),
+      if (status == 'Selesai') {
+        final waktuPembaruan = DateTime.tryParse(
+          (_laporanTerakhir!['completed_at'] ?? '').toString(),
+        );
+        if (waktuPembaruan != null) {
+          final waktuBisaMelapor =
+              waktuPembaruan.toLocal().add(const Duration(days: 2));
+          if (DateTime.now().isBefore(waktuBisaMelapor)) {
+            final tanggalBisaMelapor =
+                '${waktuBisaMelapor.day.toString().padLeft(2, '0')}-'
+                '${waktuBisaMelapor.month.toString().padLeft(2, '0')}-'
+                '${waktuBisaMelapor.year} pukul '
+                '${waktuBisaMelapor.hour.toString().padLeft(2, '0')}:'
+                '${waktuBisaMelapor.minute.toString().padLeft(2, '0')}';
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text(
+                  'Belum Bisa Membuat Laporan',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
                 ),
-              ],
-            ),
-          );
-          return;
+                content: Text(
+                  'Laporan baru dapat dibuat 2 hari setelah laporan terakhir selesai, yaitu pada $tanggalBisaMelapor.',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'OK',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryPink,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+            return;
+          }
         }
       }
     }
@@ -178,6 +199,13 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final nomorLaporan =
+        (_laporanTerakhir?['nomor_laporan'] ?? '').toString().trim();
+    final idLaporan =
+        _laporanTerakhir?['id_laporan'] ?? _laporanTerakhir?['id'] ?? '';
+    final teksNomorLaporan =
+        nomorLaporan.isNotEmpty ? nomorLaporan : 'LAP-$idLaporan';
+
     return BaseLayout(
       showBackButton: false,
       child: ListView(
@@ -380,20 +408,14 @@ class _HomePageState extends State<HomePage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('LAP-${_laporanTerakhir!['id_laporan']}',
+                                Text(teksNomorLaporan,
                                     style: GoogleFonts.plusJakartaSans(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 14,
                                         color: AppTheme.primaryPink)),
-
-                                // Tanggal Bersih Tanpa 00000Z
                                 Text(
-                                  _laporanTerakhir!['tanggal_kejadian'] != null
-                                      ? _laporanTerakhir!['tanggal_kejadian']
-                                          .toString()
-                                          .split('T')
-                                          .first
-                                      : '',
+                                  _formatTanggal(
+                                      _laporanTerakhir!['tanggal_kejadian']),
                                   style: GoogleFonts.plusJakartaSans(
                                       fontSize: 11, color: AppTheme.textGrey),
                                 ),

@@ -150,6 +150,29 @@ class MobileApiController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Laporan berhasil dihapus.']);
     }
 
+    public function evidence(Request $request, int $id, int $index)
+    {
+        $report = $this->ownedReport($request, $id);
+        $files = array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) $report->bukti_lampiran)
+        )));
+        $path = $files[$index] ?? abort(404);
+
+        abort_unless(
+            str_starts_with($path, 'laporan/'.$report->id_laporan.'/')
+                && Storage::disk('local')->exists($path),
+            404
+        );
+
+        return Storage::disk('local')->response(
+            $path,
+            basename($path),
+            ['Cache-Control' => 'private, no-store'],
+            'inline'
+        );
+    }
+
     public function notifications(Request $request, int $userId)
     {
         abort_unless($request->user()->id === $userId, 403);

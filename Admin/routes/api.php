@@ -35,6 +35,9 @@ Route::middleware(['auth:sanctum', EnsureActiveAccount::class])->group(function 
         Route::post('/lapor', [MobileApiController::class, 'storeReport']);
         Route::put('/laporan/{id}', [MobileApiController::class, 'updateReport'])->whereNumber('id');
         Route::delete('/laporan/{id}', [MobileApiController::class, 'deleteReport'])->whereNumber('id');
+        Route::get('/laporan/{id}/bukti/{index}', [MobileApiController::class, 'evidence'])
+            ->whereNumber('id')
+            ->whereNumber('index');
 
         Route::get('/notifikasi/{userId}', [MobileApiController::class, 'notifications'])->whereNumber('userId');
         Route::delete('/notifikasi/{userId}/{reportId}', [MobileApiController::class, 'dismissNotification'])
