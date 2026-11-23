@@ -1,21 +1,27 @@
-# sapa_petugas
+# SAPA PPA - Aplikasi Petugas
 
-Fondasi aplikasi Flutter untuk Petugas SAPA.
+Aplikasi Flutter khusus petugas PPA. Aplikasi ini terhubung ke REST API Laravel untuk melihat laporan yang ditugaskan, membuka detail dan bukti, memulai penanganan, mencatat penanganan, serta menyelesaikan atau menolak laporan.
 
-## Konfigurasi API
+Lihat [README utama](../README.md) untuk dokumentasi seluruh proyek.
 
-Android emulator menggunakan `http://10.0.2.2:8000/api` secara default.
-Web menggunakan `http://localhost:8000/api`.
+## Menjalankan
 
-Untuk perangkat Android fisik, jalankan aplikasi dengan alamat IP komputer
-yang dapat dijangkau perangkat:
+```powershell
+flutter pub get
+flutter run
+```
 
-```shell
+URL API bawaan adalah `http://10.0.2.2:8000/api` untuk Android Emulator dan `http://localhost:8000/api` untuk web.
+
+Untuk host custom:
+
+```powershell
 flutter run --dart-define=API_BASE_URL=http://192.168.1.10:8000/api
 ```
 
-Ganti alamat contoh dengan alamat host backend yang sesuai. Nilai
-`API_BASE_URL` harus berakhir dengan `/api`.
+## Pengujian
 
-Build debug Android mengizinkan HTTP untuk pengembangan lokal. Gunakan HTTPS
-untuk server produksi.
+```powershell
+flutter test
+flutter analyze
+```

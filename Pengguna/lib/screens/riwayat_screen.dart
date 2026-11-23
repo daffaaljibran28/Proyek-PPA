@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import '../theme.dart';
 import '../widgets/header.dart';
-import '../screens/detail.dart';
+import '../screens/detail_screen.dart';
 
 class RiwayatPage extends StatefulWidget {
   const RiwayatPage({super.key});

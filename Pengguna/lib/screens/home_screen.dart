@@ -6,8 +6,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../theme.dart';
 import '../widgets/header.dart';
 import '../forms/form1.dart';
-import '../screens/progres.dart';
-import '../screens/edukasi.dart';
+import '../screens/progres_screen.dart';
+import '../screens/edukasi_screen.dart';
 
 class HomePage extends StatefulWidget {
   final Function(int) onTabChange;

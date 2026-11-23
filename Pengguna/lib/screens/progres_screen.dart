@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme.dart';
 import '../widgets/header.dart';
-import 'detail.dart';
+import 'detail_screen.dart';
 
 class ProgresPage extends StatelessWidget {
   final Map<String, dynamic> laporan;
