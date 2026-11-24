@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' show ClientException;
 
 import '../app_theme.dart';
@@ -11,6 +12,7 @@ import '../models/petugas_user.dart';
 import '../petugas_api.dart';
 import '../petugas_session.dart';
 import 'account_screen.dart';
+import 'chat_screen.dart';
 import 'login_screen.dart';
 
 class ReportDetailScreen extends StatefulWidget {
@@ -355,6 +357,11 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                             icon: Icons.mark_chat_unread_outlined,
                             content: report.pesanPelapor,
                             emptyText: 'Belum ada pesan untuk Pelapor.',
+                          ),
+                          const SizedBox(height: 14),
+                          _ChatButtonCard(
+                            report: report,
+                            user: widget.user,
                           ),
                           if (report.statusPenanganan != 'Selesai') ...[
                             const SizedBox(height: 14),
@@ -1164,4 +1171,109 @@ String? _formatDateTime(String? value) {
 String _displayValue(Object? value, String fallback) {
   if (value is String && value.trim().isNotEmpty) return value;
   return fallback;
+}
+
+class _ChatButtonCard extends StatelessWidget {
+  const _ChatButtonCard({
+    required this.report,
+    required this.user,
+  });
+
+  final Laporan report;
+  final PetugasUser user;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFEEF2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.chat_bubble_outline_rounded,
+                  color: AppTheme.primaryPink,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Komunikasi Chat Laporan',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textDark,
+                      ),
+                    ),
+                    Text(
+                      'Pelapor: ${report.namaPelapor ?? "Pelapor"}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppTheme.textGrey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            height: 42,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryPink,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+              label: Text(
+                'Chat Pelapor',
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => ChatScreen(
+                      report: report,
+                      user: user,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

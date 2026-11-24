@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'theme.dart';
 import 'header.dart';
 import 'detail.dart';
+import 'chat_page.dart';
 
 class ProgresPage extends StatelessWidget {
   final Map<String, dynamic> laporan;
@@ -24,6 +25,31 @@ class ProgresPage extends StatelessWidget {
             _step(Icons.refresh, 'Diproses', false),
             _step(Icons.done_all, 'Selesai', false),
             const Spacer(),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryPink,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+                label: Text(
+                  'Chat Petugas',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => ChatPage(laporan: laporan)),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
               height: 44,

@@ -122,7 +122,16 @@
         {{-- STATUS PENANGANAN --}}
         <aside class="min-w-0 w-full rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
 
-            <h2 class="font-bold">Status Penanganan</h2>
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-4">
+                <h2 class="font-bold">Status Penanganan</h2>
+                @if ($laporan->status_penanganan !== 'Ditolak')
+                    <a href="{{ route('pelapor.laporan.chat', $laporan->id_laporan) }}"
+                       class="inline-flex items-center gap-1.5 rounded-lg bg-rose-500 px-3.5 py-2 text-xs font-bold text-white shadow-sm shadow-rose-200 transition hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-200">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8Z"/></svg>
+                        Chat Petugas
+                    </a>
+                @endif
+            </div>
 
             <ol class="mt-5 space-y-4 text-sm">
 

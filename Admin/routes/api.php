@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\MobileApiController;
 use App\Http\Controllers\PetugasApiController;
 use App\Http\Controllers\PetugasAuthController;
@@ -19,6 +20,12 @@ Route::get('/informasi', [MobileApiController::class, 'informations']);
 
 Route::middleware(['auth:sanctum', EnsureActiveAccount::class])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Chat laporan: dipakai Pengguna dan Petugas (hak akses dicek di ChatService).
+    Route::get('/chat/laporan/{reportId}', [ChatController::class, 'context'])->whereNumber('reportId');
+    Route::post('/chat/laporan/{reportId}/sesi', [ChatController::class, 'session'])->whereNumber('reportId');
+    Route::get('/chat/laporan/{reportId}/pesan', [ChatController::class, 'messages'])->whereNumber('reportId');
+    Route::post('/chat/laporan/{reportId}/pesan', [ChatController::class, 'send'])->whereNumber('reportId');
 
     Route::middleware(EnsureApiRole::class.':pengguna')->group(function () {
         Route::get('/user', fn (Request $request) => $request->user()->makeHidden('no_id_card'));

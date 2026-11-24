@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Laporan;
 use App\Models\User;
+use App\Services\Chat\ChatService;
+use App\Services\Firebase\FirebaseException;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -347,5 +349,38 @@ class LaporanController extends Controller
         return redirect()
             ->route('laporan.show', $id)
             ->with('success', 'Petugas berhasil ditetapkan tanpa mengubah status atau riwayat laporan.');
+    }
+
+    /**
+     * Halaman chat laporan untuk Petugas / Admin (Web).
+     */
+    public function chat(Request $request, int $id, ChatService $chat)
+    {
+        $laporan = Laporan::findOrFail($id);
+
+        return view('laporan.chat', [
+            'laporan' => $laporan,
+            'chatContext' => $chat->context($request->user(), $laporan->id_laporan),
+        ]);
+    }
+
+    /**
+     * Sesi Firebase untuk halaman chat Petugas / Admin (Web).
+     */
+    public function chatSession(Request $request, int $id, ChatService $chat)
+    {
+        $laporan = Laporan::findOrFail($id);
+
+        try {
+            $data = $chat->session($request->user(), $laporan->id_laporan);
+        } catch (FirebaseException $exception) {
+            return response()
+                ->json(['status' => 'error', 'message' => $exception->getMessage()], $exception->status)
+                ->header('Cache-Control', 'private, no-store');
+        }
+
+        return response()
+            ->json(['status' => 'success', 'data' => $data])
+            ->header('Cache-Control', 'private, no-store');
     }
 }

@@ -93,6 +93,26 @@
 
         <!-- Kolom Update Status -->
         <div class="min-w-0 space-y-6">
+            <!-- Tombol Chat Petugas -->
+            <div class="rounded-2xl border border-rose-100 bg-white p-6 shadow-sm">
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-rose-50 text-rose-600 ring-1 ring-rose-100">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8Z"/></svg>
+                    </span>
+                    <div class="min-w-0">
+                        <h3 class="text-sm font-bold text-gray-800">Ruang Chat Laporan</h3>
+                        <p class="truncate text-xs text-gray-500">Pelapor: <strong class="text-gray-700">{{ $laporan->nama_pelapor ?? 'Pelapor' }}</strong></p>
+                    </div>
+                </div>
+                <p class="text-xs leading-relaxed text-gray-500 mb-4">
+                    Komunikasi langsung secara realtime dengan Pelapor mengenai tindak lanjut dan klarifikasi laporan ini.
+                </p>
+                <a href="{{ route('laporan.chat', $laporan->id_laporan) }}" class="flex w-full items-center justify-center gap-2 rounded-xl bg-rose-500 py-2.5 text-xs font-bold text-white shadow-md shadow-rose-200 transition hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-200">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8Z"/></svg>
+                    Buka Chat Petugas
+                </a>
+            </div>
+
             <div class="bg-white p-6 rounded-2xl border border-rose-100 shadow-sm">
                 <h3 class="font-bold text-rose-600 mb-4">Tindak Lanjut Laporan</h3>
                 @if ($laporan->status_penanganan === 'Selesai')

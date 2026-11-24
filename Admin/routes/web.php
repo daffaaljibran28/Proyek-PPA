@@ -58,6 +58,10 @@ Route::prefix('pelapor')->name('pelapor.')->middleware(EnsurePelapor::class)->gr
     Route::get('/pengaduan/buat', [PelaporController::class, 'create'])->name('laporan.create');
     Route::post('/pengaduan', [PelaporController::class, 'store'])->name('laporan.store');
     Route::get('/pengaduan/{id}', [PelaporController::class, 'show'])->name('laporan.show');
+    Route::get('/pengaduan/{id}/chat', [PelaporController::class, 'chat'])->whereNumber('id')->name('laporan.chat');
+    Route::post('/pengaduan/{id}/chat/sesi', [PelaporController::class, 'chatSession'])->whereNumber('id')->name('laporan.chat.session');
+    Route::get('/pengaduan/{id}/chat/pesan', [PelaporController::class, 'chatMessages'])->whereNumber('id')->name('laporan.chat.messages');
+    Route::post('/pengaduan/{id}/chat/pesan', [PelaporController::class, 'chatSend'])->whereNumber('id')->name('laporan.chat.send');
     Route::get('/pengaduan/{id}/bukti/{index}', [PelaporController::class, 'evidence'])->whereNumber('index')->name('laporan.evidence');
     Route::post('/notifikasi/{id}/{eventIndex}/baca', [PelaporController::class, 'markNotificationRead'])->whereNumber('eventIndex')->name('notifications.read');
     Route::delete('/notifikasi/{id}/{eventIndex}', [PelaporController::class, 'destroyNotification'])->whereNumber('eventIndex')->name('notifications.destroy');
@@ -86,6 +90,8 @@ Route::middleware(['auth', EnsureAdmin::class])->group(function () {
     Route::get('/dashboard-admin', [LaporanController::class, 'dashboard'])->name('dashboard');
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
     Route::get('/laporan/{id}', [LaporanController::class, 'show'])->name('laporan.show');
+    Route::get('/laporan/{id}/chat', [LaporanController::class, 'chat'])->whereNumber('id')->name('laporan.chat');
+    Route::post('/laporan/{id}/chat/sesi', [LaporanController::class, 'chatSession'])->whereNumber('id')->name('laporan.chat.session');
     Route::get('/laporan/{id}/bukti/{index}', [LaporanController::class, 'evidence'])->whereNumber('index')->name('laporan.evidence');
     Route::put('/laporan/{id}/status', [LaporanController::class, 'updateStatus'])->name('laporan.update-status');
     Route::patch('/laporan/{id}/petugas', [LaporanController::class, 'assignPetugas'])

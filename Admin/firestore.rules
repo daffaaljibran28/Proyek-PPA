@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isParticipant(chatData) {
+      return isAuthenticated() && request.auth.uid in chatData.participants;
+    }
+
+    match /chats/{reportId} {
+      allow read: if isAuthenticated() && (
+        resource == null || isParticipant(resource.data)
+      );
+
+      allow update: if isAuthenticated()
+                    && isParticipant(resource.data)
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['last_message', 'last_message_at', 'last_sender_id', 'updated_at']);
+
+      allow create, delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if isAuthenticated()
+                    && isParticipant(get(/databases/$(database)/documents/chats/$(reportId)).data);
+
+        allow create: if isAuthenticated()
+                      && isParticipant(get(/databases/$(database)/documents/chats/$(reportId)).data)
+                      && request.resource.data.sender_id == request.auth.uid
+                      && request.resource.data.message is string
+                      && request.resource.data.message.size() > 0
+                      && request.resource.data.message.size() <= 2000
+                      && request.resource.data.created_at == request.time;
+
+        allow update: if isAuthenticated()
+                      && isParticipant(get(/databases/$(database)/documents/chats/$(reportId)).data)
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read_at'])
+                      && resource.data.sender_id != request.auth.uid
+                      && request.resource.data.read_at == request.time;
+
+        allow delete: if false;
+      }
+    }
+  }
+}

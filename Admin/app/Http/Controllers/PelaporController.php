@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Laporan;
 use App\Models\Informasi; // Ditambahkan untuk mengambil data dari tabel informasis
+use App\Services\Chat\ChatService;
+use App\Services\Firebase\FirebaseException;
 use App\Services\NomorLaporanGenerator;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -155,6 +157,82 @@ class PelaporController extends Controller
         abort_unless(str_starts_with($path, 'laporan/' . $laporan->id_laporan . '/') && Storage::disk('local')->exists($path), 404);
 
         return Storage::disk('local')->response($path, basename($path), ['Cache-Control' => 'private, no-store'], 'inline');
+    }
+
+    /**
+     * Halaman chat laporan milik pelapor (Web).
+     */
+    public function chat(Request $request, int $id, ChatService $chat)
+    {
+        $laporan = $this->ownedLaporan($request, $id);
+
+        return view('pelapor.laporan.chat', [
+            'laporan' => $laporan,
+            'chatContext' => $chat->context($request->user(), $laporan->id_laporan),
+        ]);
+    }
+
+    /**
+     * Sesi Firebase untuk halaman chat Web (memakai session login Laravel).
+     */
+    public function chatSession(Request $request, int $id, ChatService $chat)
+    {
+        $laporan = $this->ownedLaporan($request, $id);
+
+        try {
+            $data = $chat->session($request->user(), $laporan->id_laporan);
+        } catch (FirebaseException $exception) {
+            return response()
+                ->json(['status' => 'error', 'message' => $exception->getMessage()], $exception->status)
+                ->header('Cache-Control', 'private, no-store');
+        }
+
+        return response()
+            ->json(['status' => 'success', 'data' => $data])
+            ->header('Cache-Control', 'private, no-store');
+    }
+
+    /**
+     * Mengambil riwayat pesan percakapan laporan (Web).
+     */
+    public function chatMessages(Request $request, int $id, ChatService $chat)
+    {
+        $laporan = $this->ownedLaporan($request, $id);
+
+        try {
+            $data = $chat->messages($request->user(), $laporan->id_laporan);
+        } catch (FirebaseException $exception) {
+            return response()
+                ->json(['status' => 'error', 'message' => $exception->getMessage()], $exception->status)
+                ->header('Cache-Control', 'private, no-store');
+        }
+
+        return response()
+            ->json(['status' => 'success', 'data' => $data])
+            ->header('Cache-Control', 'private, no-store');
+    }
+
+    /**
+     * Mengirim pesan percakapan laporan (Web).
+     */
+    public function chatSend(Request $request, int $id, ChatService $chat)
+    {
+        $laporan = $this->ownedLaporan($request, $id);
+        $validated = $request->validate([
+            'message' => ['required', 'string', 'min:1', 'max:2000'],
+        ]);
+
+        try {
+            $data = $chat->sendMessage($request->user(), $laporan->id_laporan, $validated['message']);
+        } catch (FirebaseException $exception) {
+            return response()
+                ->json(['status' => 'error', 'message' => $exception->getMessage()], $exception->status)
+                ->header('Cache-Control', 'private, no-store');
+        }
+
+        return response()
+            ->json(['status' => 'success', 'data' => $data], 201)
+            ->header('Cache-Control', 'private, no-store');
     }
 
     public function markNotificationRead(Request $request, int $id, int $eventIndex)

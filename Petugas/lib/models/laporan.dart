@@ -13,6 +13,7 @@ class Laporan {
     this.riwayatStatus = const [],
     this.catatanPetugas,
     this.pesanPelapor,
+    this.namaPelapor,
   });
 
   final int idLaporan;
@@ -28,6 +29,7 @@ class Laporan {
   final List<Map<String, dynamic>> riwayatStatus;
   final String? catatanPetugas;
   final String? pesanPelapor;
+  final String? namaPelapor;
 
   factory Laporan.fromJson(Map<String, dynamic> json) {
     return Laporan(
@@ -56,6 +58,12 @@ class Laporan {
         'catatan_petugas',
       ),
       pesanPelapor: _optionalString(json['pesan_pelapor'], 'pesan_pelapor'),
+      namaPelapor: _optionalString(
+        json['nama_pelapor'] ??
+            (json['pelapor'] is Map ? (json['pelapor'] as Map)['name'] : null) ??
+            (json['user'] is Map ? (json['user'] as Map)['name'] : null),
+        'nama_pelapor',
+      ),
     );
   }
 
