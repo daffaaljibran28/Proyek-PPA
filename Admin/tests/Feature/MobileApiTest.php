@@ -204,6 +204,38 @@ class MobileApiTest extends TestCase
             ->assertJsonMissingPath('data.0.riwayat_status');
     }
 
+    public function test_mobile_owner_can_load_private_evidence_but_other_users_cannot(): void
+    {
+        Storage::fake('local');
+        $owner = $this->createUser('evidence-owner@example.test');
+        $other = $this->createUser('evidence-other@example.test');
+        $ownerToken = $owner->createToken('flutter-app')->plainTextToken;
+        $otherToken = $other->createToken('flutter-app')->plainTextToken;
+
+        $report = Laporan::create([
+            'id_pengguna' => $owner->id,
+            'nomor_laporan' => 'LAP-EVIDENCE-001',
+            'kategori' => 'Kekerasan',
+            'status_penanganan' => 'Menunggu Verifikasi',
+            'bukti_lampiran' => null,
+        ]);
+        $path = 'laporan/'.$report->id_laporan.'/bukti.jpg';
+        $report->bukti_lampiran = $path;
+        $report->save();
+        Storage::disk('local')->put($path, 'image-content');
+
+        Auth::forgetGuards();
+        $this->withToken($ownerToken)
+            ->get("/api/laporan/{$report->id_laporan}/bukti/0")
+            ->assertOk()
+            ->assertHeader('Content-Disposition');
+
+        Auth::forgetGuards();
+        $this->withToken($otherToken)
+            ->get("/api/laporan/{$report->id_laporan}/bukti/0")
+            ->assertNotFound();
+    }
+
     public function test_mobile_user_can_delete_only_an_unprocessed_report(): void
     {
         Storage::fake('local');

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ForgotPasswordController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\MobileApiController;
@@ -15,6 +16,11 @@ Route::middleware('throttle:10,1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/petugas/login', [PetugasAuthController::class, 'login']);
 });
+
+Route::post('/forgot-password/send-otp', [ForgotPasswordController::class, 'sendOtp'])
+    ->middleware('throttle:3,1');
+Route::post('/forgot-password/verify-otp', [ForgotPasswordController::class, 'verifyOtp']);
+Route::post('/forgot-password/reset', [ForgotPasswordController::class, 'resetPassword']);
 
 Route::get('/informasi', [MobileApiController::class, 'informations']);
 
@@ -36,6 +42,9 @@ Route::middleware(['auth:sanctum', EnsureActiveAccount::class])->group(function 
         Route::post('/lapor', [MobileApiController::class, 'storeReport']);
         Route::put('/laporan/{id}', [MobileApiController::class, 'updateReport'])->whereNumber('id');
         Route::delete('/laporan/{id}', [MobileApiController::class, 'deleteReport'])->whereNumber('id');
+        Route::get('/laporan/{id}/bukti/{index}', [MobileApiController::class, 'evidence'])
+            ->whereNumber('id')
+            ->whereNumber('index');
 
         Route::get('/notifikasi/{userId}', [MobileApiController::class, 'notifications'])->whereNumber('userId');
         Route::delete('/notifikasi/{userId}/{reportId}', [MobileApiController::class, 'dismissNotification'])

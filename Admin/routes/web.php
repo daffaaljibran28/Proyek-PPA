@@ -43,9 +43,7 @@ Route::prefix('pelapor')->name('pelapor.')->group(function () {
     Route::get('/register', [PelaporAuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [PelaporAuthController::class, 'register'])->middleware('throttle:5,1')->name('register.post');
 
-    // Rute Lupa / Ganti Password Langsung
     Route::get('/lupa-password', [PelaporAuthController::class, 'showLinkRequestForm'])->name('password.request');
-    Route::post('/lupa-password', [PelaporAuthController::class, 'updatePassword'])->middleware('throttle:5,1')->name('password.update');
 });
 
 // ========================================================

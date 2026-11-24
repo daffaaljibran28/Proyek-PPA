@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' show ClientException;
 
 import '../app_theme.dart';
+import '../forgot_password/forgot_password_screen.dart';
+import '../forgot_password/forgot_password_service.dart';
 import '../models/petugas_user.dart';
 import '../petugas_api.dart';
 import '../petugas_session.dart';
@@ -181,7 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFFFF1F4),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -299,7 +301,40 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 16),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => ForgotPasswordScreen(
+                                  service: ForgotPasswordService(
+                                    baseUrl: AppTheme.apiBaseUrl,
+                                  ),
+                                  loginBuilder: (_) => const LoginScreen(),
+                                ),
+                              ),
+                            );
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppTheme.primaryPink,
+                            backgroundColor: const Color(0xFFFFE1E9),
+                            minimumSize: const Size(0, 40),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 22,
+                              vertical: 10,
+                            ),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          child: const Text('Lupa Password?'),
+                        ),
+                        const SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity,
                           height: 52,

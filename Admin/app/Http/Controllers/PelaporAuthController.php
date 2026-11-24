@@ -97,38 +97,6 @@ class PelaporAuthController extends Controller
     }
 
     /**
-     * Memproses penyimpanan kata sandi baru secara langsung.
-     */
-    public function updatePassword(Request $request)
-    {
-        $request->validate([
-            'email' => ['required', 'string'],
-            'password' => ['required', 'string', 'min:8', 'regex:/^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*]).+$/', 'confirmed'],
-        ], [
-            'email.required' => 'Email atau Nomor HP wajib diisi.',
-            'password.min' => 'Kata sandi minimal 8 karakter.',
-            'password.regex' => 'Kata sandi harus memiliki huruf besar, huruf kecil, angka, dan simbol (!@#$%^&*).',
-            'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
-        ]);
-
-        $field = filter_var($request->email, FILTER_VALIDATE_EMAIL) ? 'email' : 'no_hp';
-
-        $user = User::where($field, $request->email)->where('role', 'pengguna')->first();
-
-        if (!$user) {
-            return back()->withInput()->withErrors([
-                'email' => 'Akun dengan Email atau Nomor HP tersebut tidak ditemukan.',
-            ]);
-        }
-
-        $user->update([
-            'password' => Hash::make($request->password),
-        ]);
-
-        return redirect()->route('pelapor.login')->with('success', 'Kata sandi berhasil diubah! Silakan masuk dengan kata sandi baru.');
-    }
-
-    /**
      * Memproses keluar (logout) pelapor.
      */
     public function logout(Request $request)
