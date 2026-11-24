@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'theme.dart';
-import 'navbar.dart';
-import 'login.dart'; // Import halaman login
+import 'widgets/navbar.dart';
+import 'auth/login.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await UserSession.restore();
   runApp(const MyApp());
 }
 
@@ -15,18 +16,20 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Sahabat PPA',
+      title: 'PPA',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         scaffoldBackgroundColor: AppTheme.bgLight,
-        textTheme: GoogleFonts.plusJakartaSansTextTheme(Theme.of(context).textTheme),
+        textTheme:
+            GoogleFonts.plusJakartaSansTextTheme(Theme.of(context).textTheme),
       ),
       routes: {
         '/home': (context) => const NavbarPage(),
         '/login': (context) => const Login(),
       },
       // Aplikasi terbuka langsung di Halaman Login saat awal dibuka
-      home: const Login(),
+      home:
+          UserSession.currentUser == null ? const Login() : const NavbarPage(),
     );
   }
 }

@@ -1,17 +1,25 @@
-# pengguna1
+# SAPA PPA - Aplikasi Pelapor
 
-A new Flutter project.
+Aplikasi Flutter untuk pelapor PPA. Aplikasi ini terhubung ke backend Laravel dan menyediakan autentikasi, registrasi, pelaporan, riwayat, notifikasi, edukasi, reset password OTP, profil, dan akses darurat.
 
-## Getting Started
+Lihat [README utama](../README.md) untuk dokumentasi seluruh proyek.
 
-This project is a starting point for a Flutter application.
+## Menjalankan
 
-A few resources to get you started if this is your first Flutter project:
+```powershell
+flutter pub get
+flutter run
+```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+URL API bawaan dipilih berdasarkan platform. Untuk alamat custom:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```powershell
+flutter run --dart-define=API_BASE_URL=http://192.168.1.10:8000/api
+```
+
+## Pengujian
+
+```powershell
+flutter test
+flutter analyze
+```

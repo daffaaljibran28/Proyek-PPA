@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Laporan;
 use App\Models\Informasi; // Ditambahkan untuk mengambil data dari tabel informasis
+use App\Services\Chat\ChatService;
+use App\Services\Firebase\FirebaseException;
+use App\Services\NomorLaporanGenerator;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -81,7 +84,7 @@ class PelaporController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, NomorLaporanGenerator $nomorLaporanGenerator)
     {
         $userId = $request->user()->id;
 
@@ -117,7 +120,7 @@ class PelaporController extends Controller
 
         $photos = $validated['foto'];
         unset($validated['foto']);
-        $nomorLaporan = $this->newReportNumber();
+        $nomorLaporan = $nomorLaporanGenerator->generate();
 
         $laporan = Laporan::create($validated + [
             'nomor_laporan' => $nomorLaporan,
@@ -154,6 +157,82 @@ class PelaporController extends Controller
         abort_unless(str_starts_with($path, 'laporan/' . $laporan->id_laporan . '/') && Storage::disk('local')->exists($path), 404);
 
         return Storage::disk('local')->response($path, basename($path), ['Cache-Control' => 'private, no-store'], 'inline');
+    }
+
+    /**
+     * Halaman chat laporan milik pelapor (Web).
+     */
+    public function chat(Request $request, int $id, ChatService $chat)
+    {
+        $laporan = $this->ownedLaporan($request, $id);
+
+        return view('pelapor.laporan.chat', [
+            'laporan' => $laporan,
+            'chatContext' => $chat->context($request->user(), $laporan->id_laporan),
+        ]);
+    }
+
+    /**
+     * Sesi Firebase untuk halaman chat Web (memakai session login Laravel).
+     */
+    public function chatSession(Request $request, int $id, ChatService $chat)
+    {
+        $laporan = $this->ownedLaporan($request, $id);
+
+        try {
+            $data = $chat->session($request->user(), $laporan->id_laporan);
+        } catch (FirebaseException $exception) {
+            return response()
+                ->json(['status' => 'error', 'message' => $exception->getMessage()], $exception->status)
+                ->header('Cache-Control', 'private, no-store');
+        }
+
+        return response()
+            ->json(['status' => 'success', 'data' => $data])
+            ->header('Cache-Control', 'private, no-store');
+    }
+
+    /**
+     * Mengambil riwayat pesan percakapan laporan (Web).
+     */
+    public function chatMessages(Request $request, int $id, ChatService $chat)
+    {
+        $laporan = $this->ownedLaporan($request, $id);
+
+        try {
+            $data = $chat->messages($request->user(), $laporan->id_laporan);
+        } catch (FirebaseException $exception) {
+            return response()
+                ->json(['status' => 'error', 'message' => $exception->getMessage()], $exception->status)
+                ->header('Cache-Control', 'private, no-store');
+        }
+
+        return response()
+            ->json(['status' => 'success', 'data' => $data])
+            ->header('Cache-Control', 'private, no-store');
+    }
+
+    /**
+     * Mengirim pesan percakapan laporan (Web).
+     */
+    public function chatSend(Request $request, int $id, ChatService $chat)
+    {
+        $laporan = $this->ownedLaporan($request, $id);
+        $validated = $request->validate([
+            'message' => ['required', 'string', 'min:1', 'max:2000'],
+        ]);
+
+        try {
+            $data = $chat->sendMessage($request->user(), $laporan->id_laporan, $validated['message']);
+        } catch (FirebaseException $exception) {
+            return response()
+                ->json(['status' => 'error', 'message' => $exception->getMessage()], $exception->status)
+                ->header('Cache-Control', 'private, no-store');
+        }
+
+        return response()
+            ->json(['status' => 'success', 'data' => $data], 201)
+            ->header('Cache-Control', 'private, no-store');
     }
 
     public function markNotificationRead(Request $request, int $id, int $eventIndex)
@@ -250,7 +329,13 @@ class PelaporController extends Controller
     public function information()
     {
         // Diubah menggunakan $informasis agar sinkron dengan view pelapor.information
-        $informasis = Informasi::where('status', 'published')->latest()->get();
+        $informasis = Informasi::where('status', 'published')
+            ->where(function ($query) {
+                $query->whereNull('tanggal_publish')
+                    ->orWhereDate('tanggal_publish', '<=', today());
+            })
+            ->latest('tanggal_publish')
+            ->get();
 
         return view('pelapor.information', compact('informasis'));
     }
@@ -444,12 +529,4 @@ class PelaporController extends Controller
         $laporan->save();
     }
 
-    private function newReportNumber(): string
-    {
-        $today = now()->format('Ymd');
-        $countToday = Laporan::whereDate('created_at', today())->count();
-        $sequence = str_pad($countToday + 1, 3, '0', STR_PAD_LEFT);
-
-        return 'LAP-' . $today . '-' . $sequence;
-    }
 }

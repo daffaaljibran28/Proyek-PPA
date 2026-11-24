@@ -1,30 +1,43 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:pengguna1/main.dart';
+import 'package:ppa_flutter/auth/login.dart';
+import 'package:ppa_flutter/main.dart';
+import 'package:ppa_flutter/theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('app opens on the login screen without a session',
+      (tester) async {
+    UserSession.currentUser = null;
     await tester.pumpWidget(const MyApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.byType(Login), findsOneWidget);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  testWidgets('forgot password link opens the OTP screen', (tester) async {
+    UserSession.currentUser = null;
+    await tester.pumpWidget(const MyApp());
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.tap(find.text('Lupa Password?'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Atur Ulang Kata Sandi'), findsOneWidget);
+    expect(find.text('Kirim Kode OTP'), findsOneWidget);
+    final emailField = tester.widget<TextField>(find.byType(TextField));
+    final emailBorder = emailField.decoration!.border! as OutlineInputBorder;
+    expect(emailBorder.borderRadius, BorderRadius.circular(28));
+  });
+
+  test('saved authentication session can be restored', () async {
+    SharedPreferences.setMockInitialValues({});
+    await UserSession.save(
+        {'id': 42, 'name': 'Pelapor', 'token': 'test-token'});
+
+    UserSession.currentUser = null;
+    await UserSession.restore();
+
+    expect(UserSession.id, 42);
+    expect(UserSession.authHeaders()['Authorization'], 'Bearer test-token');
+    await UserSession.clear();
   });
 }

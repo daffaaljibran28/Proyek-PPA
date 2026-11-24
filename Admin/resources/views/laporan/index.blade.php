@@ -28,7 +28,9 @@
             <option value="">Semua Status</option>
             <option value="Menunggu Verifikasi" {{ request('status') == 'Menunggu Verifikasi' ? 'selected' : '' }}>Menunggu Verifikasi</option>
             <option value="Sedang Diproses" {{ request('status') == 'Sedang Diproses' ? 'selected' : '' }}>Sedang Diproses</option>
+            <option value="Diproses" {{ request('status') == 'Diproses' ? 'selected' : '' }}>Diproses</option>
             <option value="Selesai" {{ request('status') == 'Selesai' ? 'selected' : '' }}>Selesai</option>
+            <option value="Ditolak" {{ request('status') == 'Ditolak' ? 'selected' : '' }}>Ditolak</option>
         </select>
 
         <button type="submit" class="bg-rose-50 border border-rose-200 text-rose-600 text-xs font-bold py-2.5 rounded-xl hover:bg-rose-100">Filter Data</button>
@@ -36,48 +38,79 @@
 
     <!-- Table Card -->
     <div class="bg-white p-6 rounded-2xl border border-rose-100 shadow-sm">
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-rose-50/50 text-gray-500 text-xs font-bold uppercase border-b border-rose-100">
-                    <th class="py-3 px-4">No Laporan</th>
-                    <th class="py-3 px-4">Kategori</th>
-                    <th class="py-3 px-4">Nama Pelapor</th>
-                    <th class="py-3 px-4">Lokasi</th>
-                    <th class="py-3 px-4">Tanggal</th>
-                    <th class="py-3 px-4">Status</th>
-                    <th class="py-3 px-4">Aksi</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 text-xs">
-                @forelse($laporans as $item)
-                <tr>
-                    <td class="py-4 px-4 font-bold text-rose-600">{{ $item->nomor_laporan }}</td>
-                    <td class="py-4 px-4 font-semibold text-gray-800">{{ $item->kategori }}</td>
-                    <td class="py-4 px-4 font-medium text-gray-700">
-                        {{ $item->nama_pelapor ?? '-' }}
-                    </td>
-                    <td class="py-4 px-4 text-gray-600">{{ $item->lokasi_kejadian }}</td>
-                    <td class="py-4 px-4 text-gray-500">{{ optional($item->tanggal_kejadian)->format('d M Y') ?? '-' }}</td>
-                    <td class="py-4 px-4">
-                        @if($item->status_penanganan == 'Menunggu Verifikasi')
-                            <span class="bg-amber-50 text-amber-600 px-3 py-1 rounded-full font-bold">Menunggu Verifikasi</span>
-                        @elseif($item->status_penanganan == 'Sedang Diproses' || $item->status_penanganan == 'Diproses')
-                            <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full font-bold">Sedang Diproses</span>
-                        @else
-                            <span class="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full font-bold">Selesai</span>
-                        @endif
-                    </td>
-                    <td class="py-4 px-4">
-                        <a href="{{ route('laporan.show', $item->id_laporan) }}" class="bg-rose-500 text-white font-bold px-3 py-1.5 rounded-lg hover:bg-rose-600 transition">Lihat</a>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="7" class="text-center py-8 text-gray-400">Belum ada data laporan masuk.</td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
+        <div class="overflow-x-auto">
+            <table class="w-full table-fixed text-left border-collapse">
+                <colgroup>
+                    <col class="w-[13%]">
+                    <col class="w-[15%]">
+                    <col class="w-[11%]">
+                    <col class="w-[20%]">
+                    <col class="w-[10%]">
+                    <col class="w-[13%]">
+                    <col class="w-[10%]">
+                    <col class="w-[8%]">
+                </colgroup>
+                <thead>
+                    <tr class="bg-rose-50/50 text-gray-500 text-xs font-bold uppercase border-b border-rose-100">
+                        <th class="py-3 px-2 md:px-3">No Laporan</th>
+                        <th class="py-3 px-2 md:px-3">Kategori</th>
+                        <th class="py-3 px-2 md:px-3">Nama Pelapor</th>
+                        <th class="py-3 px-2 md:px-3">Lokasi</th>
+                        <th class="py-3 px-2 md:px-3">Tanggal</th>
+                        <th class="py-3 px-2 md:px-3 text-center">Status</th>
+                        <th class="py-3 px-2 md:px-3">Petugas</th>
+                        <th class="py-3 px-2 md:px-3 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 text-xs">
+                    @forelse($laporans as $item)
+                    <tr>
+                        <td class="py-4 px-2 md:px-3 font-bold text-rose-600 break-all">{{ $item->nomor_laporan }}</td>
+                        <td class="py-4 px-2 md:px-3 font-semibold text-gray-800 break-words">{{ $item->kategori }}</td>
+                        <td class="py-4 px-2 md:px-3 font-medium text-gray-700 break-words">
+                            {{ $item->nama_pelapor ?? '-' }}
+                        </td>
+                        <td class="py-4 px-2 md:px-3 text-gray-600 break-words">
+                            @if($item->lokasi_kejadian)
+                                <a href="https://www.google.com/maps/search/?api=1&amp;query={{ urlencode($item->lokasi_kejadian) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-rose-700 hover:underline" title="Buka lokasi di Google Maps">
+                                    <span>{{ $item->lokasi_kejadian }}</span>
+                                    <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                                </a>
+                            @else
+                                -
+                            @endif
+                        </td>
+                        <td class="py-4 px-2 md:px-3 text-gray-500">{{ optional($item->tanggal_kejadian)->format('d M Y') ?? '-' }}</td>
+                        <td class="py-4 px-2 md:px-3 text-center">
+                            @if($item->status_penanganan == 'Menunggu Verifikasi')
+                                <span class="inline-flex max-w-full justify-center rounded-full bg-amber-50 px-2 md:px-3 py-1 text-center font-bold text-amber-600">Menunggu Verifikasi</span>
+                            @elseif($item->status_penanganan == 'Sedang Diproses')
+                                <span class="inline-flex max-w-full justify-center rounded-full bg-blue-50 px-2 md:px-3 py-1 text-center font-bold text-blue-600">Sedang Diproses</span>
+                            @elseif($item->status_penanganan == 'Diproses')
+                                <span class="inline-flex max-w-full justify-center rounded-full bg-indigo-50 px-2 md:px-3 py-1 text-center font-bold text-indigo-600">Diproses</span>
+                            @elseif($item->status_penanganan == 'Selesai')
+                                <span class="inline-flex max-w-full justify-center rounded-full bg-emerald-50 px-2 md:px-3 py-1 text-center font-bold text-emerald-600">Selesai</span>
+                            @elseif($item->status_penanganan == 'Ditolak')
+                                <span class="inline-flex max-w-full justify-center rounded-full bg-rose-50 px-2 md:px-3 py-1 text-center font-bold text-rose-600">Ditolak</span>
+                            @else
+                                <span class="inline-flex max-w-full justify-center rounded-full bg-gray-100 px-2 md:px-3 py-1 text-center font-bold text-gray-600">{{ $item->status_penanganan }}</span>
+                            @endif
+                        </td>
+                        <td class="py-4 px-2 md:px-3 text-gray-600 break-words">
+                            {{ $item->petugas?->name ?? ($item->assigned_petugas_id === null && $item->status_penanganan === 'Sedang Diproses' ? 'Belum ditugaskan' : '-') }}
+                        </td>
+                        <td class="py-4 px-2 md:px-3 text-center">
+                            <a href="{{ route('laporan.show', $item->id_laporan) }}" class="inline-block rounded-lg bg-rose-500 px-2 md:px-3 py-1.5 font-bold text-white transition hover:bg-rose-600">Lihat</a>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="8" class="text-center py-8 text-gray-400">Belum ada data laporan masuk.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
 
         <div class="mt-4">
             {{ $laporans->links() }}

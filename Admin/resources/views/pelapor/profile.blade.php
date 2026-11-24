@@ -3,13 +3,12 @@
 @section('title', 'Profil')
 
 @section('content')
-    <p class="text-sm text-slate-500">Akun</p>
-    <h1 class="mt-1 text-2xl font-bold">Profil Pengguna</h1>
+    <h1 class="text-2xl font-bold text-rose-600">Profil Pengguna</h1>
         <p class="mt-2 text-sm text-slate-600">Perbarui data kontak dan informasi akun Anda.</p>
         @if ($errors->any())
-            <div role="alert" class="mt-5 max-w-3xl rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ $errors->first() }}</div>
+            <div role="alert" class="mt-5 w-full rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ $errors->first() }}</div>
         @endif
-        <form method="POST" action="{{ route('pelapor.profile.update') }}" class="mt-6 max-w-3xl rounded-xl border border-slate-200 bg-white p-5 sm:p-7">
+        <form method="POST" action="{{ route('pelapor.profile.update') }}" class="mt-6 w-full rounded-xl border border-slate-200 bg-white p-5 sm:p-7">
             @csrf
             @method('PUT')
             <div class="grid gap-5 sm:grid-cols-2">

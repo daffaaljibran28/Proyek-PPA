@@ -1,58 +1,70 @@
 <?php
 
+use App\Http\Controllers\Api\ForgotPasswordController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\MobileApiController;
+use App\Http\Controllers\PetugasApiController;
+use App\Http\Controllers\PetugasAuthController;
+use App\Http\Middleware\EnsureActiveAccount;
+use App\Http\Middleware\EnsureApiRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Models\Laporan;
-use Carbon\Carbon;
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::middleware('throttle:10,1')->group(function () {
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/petugas/login', [PetugasAuthController::class, 'login']);
 });
 
-// Rute untuk Login & Register Pengguna (Flutter)
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']);
+Route::post('/forgot-password/send-otp', [ForgotPasswordController::class, 'sendOtp'])
+    ->middleware('throttle:3,1');
+Route::post('/forgot-password/verify-otp', [ForgotPasswordController::class, 'verifyOtp']);
+Route::post('/forgot-password/reset', [ForgotPasswordController::class, 'resetPassword']);
 
-// Rute untuk Pengiriman Laporan
-Route::post('/lapor', function (Request $request) {
-    $tanggal = $request->tanggal_kejadian;
-    if ($tanggal) {
-        try {
-            if (str_contains($tanggal, '-')) {
-                $parts = explode('-', $tanggal);
-                if (strlen($parts[0]) == 2) {
-                    $tanggal = Carbon::createFromFormat('d-m-Y', $tanggal)->format('Y-m-d');
-                }
-            }
-        } catch (\Exception $e) {
-            $tanggal = now()->format('Y-m-d');
-        }
-    } else {
-        $tanggal = now()->format('Y-m-d');
-    }
+Route::get('/informasi', [MobileApiController::class, 'informations']);
 
-    $nomorLaporan = 'LAP-' . date('Ymd') . '-' . rand(100, 999);
+Route::middleware(['auth:sanctum', EnsureActiveAccount::class])->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
 
-    $laporan = Laporan::create([
-        'nomor_laporan'     => $nomorLaporan,
-        'id_pengguna'       => $request->id_pengguna ?? 1,
-        'kategori'          => $request->kategori,
-        'sebagai'           => $request->sebagai,
-        'nama_pelapor'      => $request->nama_pelapor ?? $request->pelapor_nama ?? 'Revitaaa',
-        'pelapor_nama'      => $request->nama_pelapor ?? $request->pelapor_nama ?? 'Revitaaa',
-        'lokasi'            => $request->lokasi_kejadian ?? $request->lokasi,
-        'lokasi_kejadian'   => $request->lokasi_kejadian ?? $request->lokasi,
-        'tanggal_kejadian'  => $tanggal,
-        'kronologi'         => $request->kronologi,
-        'bukti_lampiran'    => $request->bukti_lampiran,
-        'status'            => 'Menunggu Verifikasi',
-        'status_penanganan' => 'Menunggu Verifikasi',
-    ]);
+    // Chat laporan: dipakai Pengguna dan Petugas (hak akses dicek di ChatService).
+    Route::get('/chat/laporan/{reportId}', [ChatController::class, 'context'])->whereNumber('reportId');
+    Route::post('/chat/laporan/{reportId}/sesi', [ChatController::class, 'session'])->whereNumber('reportId');
+    Route::get('/chat/laporan/{reportId}/pesan', [ChatController::class, 'messages'])->whereNumber('reportId');
+    Route::post('/chat/laporan/{reportId}/pesan', [ChatController::class, 'send'])->whereNumber('reportId');
 
-    return response()->json([
-        'status'  => 'success',
-        'message' => 'Laporan berhasil terkirim ke Admin!',
-        'data'    => $laporan,
-    ], 201);
+    Route::middleware(EnsureApiRole::class.':pengguna')->group(function () {
+        Route::get('/user', fn (Request $request) => $request->user()->makeHidden('no_id_card'));
+
+        Route::get('/laporan', [MobileApiController::class, 'reports']);
+        Route::get('/riwayat', [MobileApiController::class, 'reports']);
+        Route::get('/laporan-terakhir', [MobileApiController::class, 'latestReport']);
+        Route::post('/lapor', [MobileApiController::class, 'storeReport']);
+        Route::put('/laporan/{id}', [MobileApiController::class, 'updateReport'])->whereNumber('id');
+        Route::delete('/laporan/{id}', [MobileApiController::class, 'deleteReport'])->whereNumber('id');
+        Route::get('/laporan/{id}/bukti/{index}', [MobileApiController::class, 'evidence'])
+            ->whereNumber('id')
+            ->whereNumber('index');
+
+        Route::get('/notifikasi/{userId}', [MobileApiController::class, 'notifications'])->whereNumber('userId');
+        Route::delete('/notifikasi/{userId}/{reportId}', [MobileApiController::class, 'dismissNotification'])
+            ->whereNumber('userId')
+            ->whereNumber('reportId');
+
+        Route::put('/pengguna/{userId}/profil', [MobileApiController::class, 'updateProfile'])->whereNumber('userId');
+        Route::put('/pengguna/{userId}/password', [MobileApiController::class, 'updatePassword'])->whereNumber('userId');
+    });
+
+    Route::prefix('petugas')
+        ->middleware(EnsureApiRole::class.':petugas')
+        ->group(function () {
+            Route::get('/dashboard', [PetugasApiController::class, 'dashboard']);
+            Route::get('/laporan', [PetugasApiController::class, 'reports']);
+            Route::get('/laporan/{id}', [PetugasApiController::class, 'showReport'])->whereNumber('id');
+            Route::get('/laporan/{id}/bukti/{index}', [PetugasApiController::class, 'evidence'])
+                ->whereNumber('id')
+                ->whereNumber('index');
+            Route::patch('/laporan/{id}/penanganan', [PetugasApiController::class, 'updateHandling'])
+                ->whereNumber('id');
+        });
 });

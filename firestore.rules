@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Fungsi utilitas autentikasi
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Memeriksa apakah UID pemohon terdaftar di daftar peserta percakapan
+    function isParticipant(chatData) {
+      return isAuthenticated() && request.auth.uid in chatData.participants;
+    }
+
+    // Koleksi percakapan laporan
+    match /chats/{reportId} {
+      // Pembacaan dokumen induk chat hanya diizinkan untuk peserta terdaftar
+      allow read: if isAuthenticated() && (
+        resource == null || isParticipant(resource.data)
+      );
+
+      // Klien (Web/Flutter) hanya boleh memperbarui metadata pesan terakhir saat mengirim pesan
+      allow update: if isAuthenticated()
+                    && isParticipant(resource.data)
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['last_message', 'last_message_at', 'last_sender_id', 'updated_at']);
+
+      // Pembuatan awal dan penghapusan dokumen induk hanya dilakukan oleh Backend Laravel (Admin SDK/REST API)
+      allow create, delete: if false;
+
+      // Sub-koleksi riwayat pesan dalam percakapan laporan
+      match /messages/{messageId} {
+        // Hanya peserta percakapan yang dapat membaca riwayat pesan
+        allow read: if isAuthenticated()
+                    && isParticipant(get(/databases/$(database)/documents/chats/$(reportId)).data);
+
+        // Aturan pengiriman pesan baru:
+        // 1. Pengirim harus terautentikasi dan merupakan peserta laporan
+        // 2. ID pengirim harus persis sama dengan UID Firebase Custom Token (request.auth.uid)
+        // 3. Peran pengirim harus sesuai awalan UID (sapa_pengguna_*, sapa_petugas_*, sapa_admin_*)
+        //    agar Pengguna tidak dapat menyamar sebagai Petugas
+        // 4. Panjang teks pesan antara 1 hingga 2000 karakter
+        // 5. Timestamp dibuat menggunakan serverTimestamp()
+        allow create: if isAuthenticated()
+                      && isParticipant(get(/databases/$(database)/documents/chats/$(reportId)).data)
+                      && request.resource.data.sender_id == request.auth.uid
+                      && request.resource.data.sender_role == request.auth.uid.split('_')[1]
+                      && request.resource.data.sender_name is string
+                      && request.resource.data.message is string
+                      && request.resource.data.message.size() > 0
+                      && request.resource.data.message.size() <= 2000
+                      && request.resource.data.created_at == request.time;
+
+        // Pembaruan pesan hanya diperbolehkan untuk menandai status telah dibaca (read_at) oleh pihak penerima
+        allow update: if isAuthenticated()
+                      && isParticipant(get(/databases/$(database)/documents/chats/$(reportId)).data)
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read_at'])
+                      && resource.data.sender_id != request.auth.uid
+                      && request.resource.data.read_at == request.time;
+
+        // Pesan tidak boleh dihapus oleh klien untuk menjaga integritas barang bukti kasus
+        allow delete: if false;
+      }
+    }
+  }
+}

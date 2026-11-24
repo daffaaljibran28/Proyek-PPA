@@ -1,7 +1,9 @@
 <x-app-layout>
     <div class="flex justify-between items-center mb-6">
         <div class="flex items-center gap-3">
-            <a href="{{ route('laporan.index') }}" class="w-9 h-9 border border-gray-200 bg-white rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-50 transition">←</a>
+            <a href="{{ route('laporan.index') }}" aria-label="Kembali ke daftar laporan" title="Kembali ke daftar laporan" class="grid h-10 w-10 place-items-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:-translate-x-0.5 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m7 7-7-7 7-7"/></svg>
+            </a>
             <h2 class="text-xl font-bold text-rose-600">Detail Laporan {{ $laporan->nomor_laporan }}</h2>
         </div>
         <span class="bg-amber-50 text-amber-600 border border-amber-200 px-4 py-1.5 rounded-full text-xs font-bold">
@@ -44,7 +46,13 @@
                     </div>
                     <div>
                         <p class="text-gray-400 text-xs">Lokasi Kejadian</p>
-                        <p class="font-semibold text-gray-800">{{ $laporan->lokasi_kejadian }}</p>
+                        <p class="font-semibold text-gray-800">{{ $laporan->lokasi_kejadian ?: '-' }}</p>
+                        @if($laporan->lokasi_kejadian)
+                            <a href="https://www.google.com/maps/search/?api=1&amp;query={{ urlencode($laporan->lokasi_kejadian) }}" target="_blank" rel="noopener noreferrer" class="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline">
+                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                                Buka di Google Maps
+                            </a>
+                        @endif
                     </div>
                     <div>
                         <p class="text-gray-400 text-xs">Tanggal Kejadian</p>
@@ -85,40 +93,100 @@
 
         <!-- Kolom Update Status -->
         <div class="min-w-0 space-y-6">
+            <!-- Tombol Chat Petugas -->
+            <div class="rounded-2xl border border-rose-100 bg-white p-6 shadow-sm">
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-rose-50 text-rose-600 ring-1 ring-rose-100">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8Z"/></svg>
+                    </span>
+                    <div class="min-w-0">
+                        <h3 class="text-sm font-bold text-gray-800">Ruang Chat Laporan</h3>
+                        <p class="truncate text-xs text-gray-500">Pelapor: <strong class="text-gray-700">{{ $laporan->nama_pelapor ?? 'Pelapor' }}</strong></p>
+                    </div>
+                </div>
+                <p class="text-xs leading-relaxed text-gray-500 mb-4">
+                    Komunikasi langsung secara realtime dengan Pelapor mengenai tindak lanjut dan klarifikasi laporan ini.
+                </p>
+                <a href="{{ route('laporan.chat', $laporan->id_laporan) }}" class="flex w-full items-center justify-center gap-2 rounded-xl bg-rose-500 py-2.5 text-xs font-bold text-white shadow-md shadow-rose-200 transition hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-200">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8Z"/></svg>
+                    Buka Chat Petugas
+                </a>
+            </div>
+
             <div class="bg-white p-6 rounded-2xl border border-rose-100 shadow-sm">
                 <h3 class="font-bold text-rose-600 mb-4">Tindak Lanjut Laporan</h3>
                 @if ($laporan->status_penanganan === 'Selesai')
                     <p class="rounded-xl bg-emerald-50 p-4 text-sm leading-6 text-emerald-800">Laporan sudah selesai. Data dan status dikunci dan hanya dapat dilihat.</p>
+                @elseif ($laporan->status_penanganan === 'Menunggu Verifikasi')
+                    <form action="{{ route('laporan.update-status', $laporan->id_laporan) }}" method="POST" class="space-y-4">
+                        @csrf
+                        @method('PUT')
+                        <div>
+                            <label for="status_penanganan" class="mb-1 block text-xs font-bold text-gray-700">Keputusan Admin</label>
+                            <select id="status_penanganan" name="status_penanganan" required class="w-full rounded-xl border-gray-200 p-3 text-xs focus:border-rose-500 focus:ring-rose-500">
+                                <option value="">Pilih keputusan</option>
+                                <option value="Sedang Diproses" @selected(old('status_penanganan') === 'Sedang Diproses')>Verifikasi dan tugaskan Petugas</option>
+                                <option value="Ditolak" @selected(old('status_penanganan') === 'Ditolak')>Tolak laporan</option>
+                            </select>
+                            @error('status_penanganan')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div>
+                            <label for="assigned_petugas_id" class="mb-1 block text-xs font-bold text-gray-700">Petugas aktif</label>
+                            <select id="assigned_petugas_id" name="assigned_petugas_id" class="w-full rounded-xl border-gray-200 p-3 text-xs focus:border-rose-500 focus:ring-rose-500">
+                                <option value="">Pilih Petugas (wajib untuk verifikasi)</option>
+                                @foreach ($petugasAktif as $petugas)
+                                    <option value="{{ $petugas->id }}" @selected((string) old('assigned_petugas_id', $laporan->assigned_petugas_id) === (string) $petugas->id)>
+                                        {{ $petugas->name }}{{ $petugas->no_id_card ? ' - '.$petugas->no_id_card : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('assigned_petugas_id')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
+                            <p class="mt-1 text-xs text-gray-500">Pilihan Petugas tidak diperlukan jika laporan ditolak.</p>
+                        </div>
+
+                        <div>
+                            <label for="catatan_admin" class="mb-1 block text-xs font-bold text-gray-700">Catatan internal (tidak terlihat pelapor)</label>
+                            <textarea id="catatan_admin" name="catatan_admin" rows="3" class="w-full rounded-xl border-gray-200 p-3 text-xs focus:border-rose-500 focus:ring-rose-500" placeholder="Catatan internal Admin...">{{ old('catatan_admin', $laporan->catatan_admin) }}</textarea>
+                            @error('catatan_admin')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div>
+                            <label for="pesan_pelapor" class="mb-1 block text-xs font-bold text-gray-700">Pesan untuk Pelapor</label>
+                            <textarea id="pesan_pelapor" name="pesan_pelapor" rows="3" maxlength="2000" class="w-full rounded-xl border-gray-200 p-3 text-xs focus:border-rose-500 focus:ring-rose-500" placeholder="Pesan yang dapat dibaca pelapor...">{{ old('pesan_pelapor') }}</textarea>
+                            @error('pesan_pelapor')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
+                        </div>
+
+                        <button type="submit" class="w-full rounded-xl bg-rose-500 py-2.5 text-xs font-bold text-white shadow-md shadow-rose-200 hover:bg-rose-600">Simpan Keputusan</button>
+                    </form>
+                @elseif ($laporan->status_penanganan === 'Sedang Diproses' && $laporan->assigned_petugas_id === null)
+                    <p class="mb-4 text-sm leading-6 text-amber-800">Laporan ini sudah diverifikasi, tetapi belum memiliki Petugas. Tetapkan Petugas tanpa mengubah status atau riwayat.</p>
+                    <form action="{{ route('laporan.assign-petugas', $laporan->id_laporan) }}" method="POST" class="space-y-4">
+                        @csrf
+                        @method('PATCH')
+                        <div>
+                            <label for="assigned_petugas_id" class="mb-1 block text-xs font-bold text-gray-700">Petugas aktif</label>
+                            <select id="assigned_petugas_id" name="assigned_petugas_id" required class="w-full rounded-xl border-gray-200 p-3 text-xs focus:border-rose-500 focus:ring-rose-500">
+                                <option value="">Pilih Petugas</option>
+                                @foreach ($petugasAktif as $petugas)
+                                    <option value="{{ $petugas->id }}" @selected((string) old('assigned_petugas_id') === (string) $petugas->id)>
+                                        {{ $petugas->name }}{{ $petugas->no_id_card ? ' - '.$petugas->no_id_card : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('assigned_petugas_id')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
+                        </div>
+                        <button type="submit" class="w-full rounded-xl bg-rose-500 py-2.5 text-xs font-bold text-white hover:bg-rose-600">Tetapkan Petugas</button>
+                    </form>
                 @else
-                <form action="{{ route('laporan.update-status', $laporan->id_laporan) }}" method="POST" class="space-y-4">
-                    @csrf
-                    @method('PUT')
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Ubah Status</label>
-                        <select name="status_penanganan" class="w-full border-gray-200 rounded-xl text-xs p-3 focus:ring-rose-500 focus:border-rose-500">
-                            <option value="Menunggu Verifikasi" {{ $laporan->status_penanganan == 'Menunggu Verifikasi' ? 'selected' : '' }}>Menunggu Verifikasi</option>
-                            <option value="Sedang Diproses" {{ $laporan->status_penanganan == 'Sedang Diproses' ? 'selected' : '' }}>Sedang Diproses / Diverifikasi</option>
-                            @if ($laporan->status_penanganan === 'Diproses')<option value="Diproses" selected>Diproses (status lama)</option>@endif
-                            <option value="Selesai">Selesai</option>
-                            <option value="Ditolak" {{ $laporan->status_penanganan == 'Ditolak' ? 'selected' : '' }}>Ditolak</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Catatan internal (tidak terlihat pelapor)</label>
-                        <textarea name="catatan_admin" rows="3" class="w-full border-gray-200 rounded-xl text-xs p-3 focus:ring-rose-500 focus:border-rose-500" placeholder="Catatan internal petugas...">{{ $laporan->catatan_admin }}</textarea>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Pesan untuk Pelapor</label>
-                        <textarea name="pesan_pelapor" rows="3" maxlength="2000" class="w-full border-gray-200 rounded-xl text-xs p-3 focus:ring-rose-500 focus:border-rose-500" placeholder="Pesan yang dapat dibaca pelapor...">{{ old('pesan_pelapor') }}</textarea>
-                    </div>
-
-                    <div class="flex gap-3 pt-2">
-                        <button type="reset" class="w-1/2 py-2.5 border border-rose-500 text-rose-500 rounded-xl text-xs font-bold hover:bg-rose-50">Batal</button>
-                        <button type="submit" class="w-1/2 py-2.5 bg-rose-500 text-white rounded-xl text-xs font-bold hover:bg-rose-600 shadow-md shadow-rose-200">Simpan</button>
-                    </div>
-                </form>
+                    <p class="text-sm leading-6 text-gray-600">
+                        Status: <strong>{{ $laporan->status_penanganan }}</strong>
+                    </p>
+                    <p class="mt-2 text-sm leading-6 text-gray-600">
+                        Petugas:
+                        <strong>{{ $laporan->petugas?->name ?? '-' }}</strong>
+                    </p>
+                    <p class="mt-3 text-xs text-gray-500">Perubahan status menjadi Diproses atau Selesai dilakukan oleh Petugas.</p>
                 @endif
             </div>
         </div>
